@@ -27,15 +27,14 @@ const ConnectButton: React.FC<ConnectButtonParams> = ({ onChainChanged }) => {
 	const web3Context = useWeb3Provider();
 	const [address, setAddress] = useState<string | null>(null);
 
-	const getProvider = async (): Promise<void> => {
-		const currentProvider = web3Context?.web3Provider;
-		if (currentProvider) {
-			const currentAddress = await currentProvider.getSigner().getAddress();
-			setAddress(currentAddress);
-		}
-	};
-
 	useEffect(() => {
+		const getProvider = async (): Promise<void> => {
+			const currentProvider = web3Context?.web3Provider;
+			if (currentProvider) {
+				const currentAddress = await currentProvider.getSigner().getAddress();
+				setAddress(currentAddress);
+			}
+		};
 		getProvider();
 	}, [web3Context]);
 

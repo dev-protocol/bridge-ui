@@ -41,23 +41,22 @@ const App: React.FC = () => {
 	};
 
 	useEffect(() => {
+		const getDEVBalance = async () => {
+			if (web3ProviderContext?.web3Provider) {
+				const provider = web3ProviderContext?.web3Provider;
+				const network = await provider.getNetwork();
+				const chainId = await network?.chainId;
+				const availableNetwork = getAvailableNetworkByChainId(chainId);
+				if (availableNetwork) {
+					const contract = new Contract(availableNetwork.tokenAddress, erc20ABI, provider);
+					const address = await provider.getSigner().getAddress();
+					const balance: BigNumber = await contract.balanceOf(address);
+					setDevBalance(balance);
+				}
+			}
+		};
 		getDEVBalance();
 	}, [web3ProviderContext]);
-
-	const getDEVBalance = async () => {
-		if (web3ProviderContext?.web3Provider) {
-			const provider = web3ProviderContext?.web3Provider;
-			const network = await provider.getNetwork();
-			const chainId = await network?.chainId;
-			const availableNetwork = getAvailableNetworkByChainId(chainId);
-			if (availableNetwork) {
-				const contract = new Contract(availableNetwork.tokenAddress, erc20ABI, provider);
-				const address = await provider.getSigner().getAddress();
-				const balance: BigNumber = await contract.balanceOf(address);
-				setDevBalance(balance);
-			}
-		}
-	};
 
 	return (
 		<WebProviderContext.Provider value={web3ProviderContext}>

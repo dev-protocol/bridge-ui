@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import DepositConfirmationModal from './DepositConfirmationModal';
 import { ArbitrumMainnet } from '../_const/constants';
 import { useWeb3Provider } from '../App';
@@ -38,29 +38,13 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
 			const newAmount = BigNumber.from(+val);
 			setAmount(newAmount);
-
 			setFormValid(devBalance && devBalance?.gte(newAmount) && +val > 0 ? true : false);
-
-			// setFormValid(+val > 0);
 		} else {
 			setFormValid(false);
 		}
 	};
 
-	const getProvider = async (): Promise<void> => {
-		const currentProvider = web3Context?.web3Provider;
-		if (currentProvider) {
-			const network = await currentProvider.getNetwork();
-			getNetwork();
-			const accounts = await currentProvider.listAccounts();
-			setIsConnected(accounts.length > 0);
-			setIsValidNetwork(isValidChain(network.chainId));
-		} else {
-			setIsConnected(false);
-		}
-	};
-
-	const getNetwork = async (): Promise<void> => {
+	const getNetwork = useCallback(async (): Promise<void> => {
 		const currentProvider = web3Context?.web3Provider;
 		if (currentProvider) {
 			const network = await currentProvider.getNetwork();
@@ -73,22 +57,33 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 					isTestnet: validSourceNetwork.isTestnet
 				});
 				setTargetChainOptions(options);
-				console.log('options are: ', options);
 			} else {
 				setTargetChainOptions([]);
 			}
 		}
-	};
+	}, [web3Context?.web3Provider]);
 
 	useEffect(() => {
 		setIsValidNetwork(currentChain ? isValidChain(currentChain) : false);
 		getNetwork();
-	}, [currentChain]);
+	}, [currentChain, getNetwork]);
 
 	useEffect(() => {
+		const getProvider = async (): Promise<void> => {
+			const currentProvider = web3Context?.web3Provider;
+			if (currentProvider) {
+				const network = await currentProvider.getNetwork();
+				getNetwork();
+				const accounts = await currentProvider.listAccounts();
+				setIsConnected(accounts.length > 0);
+				setIsValidNetwork(isValidChain(network.chainId));
+			} else {
+				setIsConnected(false);
+			}
+		};
+
 		getProvider();
-		// getDEVBalance();
-	}, [web3Context]);
+	}, [web3Context, getNetwork]);
 
 	const launchModal = (e: React.FormEvent): void => {
 		e.preventDefault();
