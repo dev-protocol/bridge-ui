@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import DepositConfirmationModal from './DepositConfirmationModal';
 import { ArbitrumMainnet } from '../_const/constants';
 import { useWeb3Provider } from '../App';
-import { getAvailableNetworkByChainId, getTargetNetworkOptions, isValidChain } from '../_utils/utils';
+import { getAvailableNetworkByChainId, getTargetNetworkOptions, isValidChain, patchNetworkName } from '../_utils/utils';
 import { BigNumber } from '@ethersproject/bignumber';
 import { ethers } from 'ethers';
 import { UndefinedOr } from '@devprotocol/util-ts';
@@ -48,7 +48,8 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 		const currentProvider = web3Context?.web3Provider;
 		if (currentProvider) {
 			const network = await currentProvider.getNetwork();
-			setNetwork(network);
+
+			setNetwork(patchNetworkName(network));
 
 			const validSourceNetwork = getAvailableNetworkByChainId(network.chainId);
 			if (validSourceNetwork) {
@@ -57,6 +58,11 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 					isTestnet: validSourceNetwork.isTestnet
 				});
 				setTargetChainOptions(options);
+
+				// update target network select to first option
+				if (options.length > 0) {
+					setSelectedTargetChain(options[0]);
+				}
 			} else {
 				setTargetChainOptions([]);
 			}
