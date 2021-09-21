@@ -22,13 +22,13 @@ export const AvailableNetworks: AvailableNetwork[] = [
 		chainId: 4,
 		layer: 1,
 		isTestnet: true,
-		tokenAddress: ''
+		tokenAddress: '0xa21CB351Fc29aCB7c3901270a5259Bf5e68f11d8' // this is a dummy ERC20 DEV token used for testing
 	},
 	{
 		name: 'Arbitrum Rinkeby',
 		chainId: 421611,
 		layer: 2,
 		isTestnet: true,
-		tokenAddress: ''
+		tokenAddress: '0xFaD23945aFa4dF5C7e1F4532C718A125328372e7' // testing
 	}
 ];
