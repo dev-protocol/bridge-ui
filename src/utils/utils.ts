@@ -1,7 +1,14 @@
 import { UndefinedOr } from '@devprotocol/util-ts';
 import { ethers } from 'ethers';
-import { AvailableNetworks } from '../_const/constants';
-import { AvailableNetwork } from '../_types/types';
+import {
+	ARBITRUM_MAINNET_GATEWAY_ADDRESS,
+	ARBITRUM_RINKEBY_GATEWAY_ADDRESS,
+	AvailableNetworks,
+	MAINNET_GATEWAY_ADDRESS,
+	RINKEBY_GATEWAY_ADDRESS
+} from '../constants/constants';
+import { AvailableNetwork } from '../types/types';
+import { getAddress } from '@ethersproject/address';
 
 export const getAvailableNetworkByChainId = (id: number): UndefinedOr<AvailableNetwork> =>
 	AvailableNetworks.find(network => network.chainId === id);
@@ -14,6 +21,30 @@ export const getAvailableNetworkByChainId = (id: number): UndefinedOr<AvailableN
 export const isValidChain = (chainId: number): boolean => {
 	const validNetwork = AvailableNetworks.filter(network => network.chainId === chainId);
 	return validNetwork.length > 0;
+};
+
+/**
+ * Pass in the source network to get the bridge contract gateway address
+ * @param network source AvailableNetwork. For example, sending Mainnet -> Arbitrum Mainnet, pass in Mainnet Network
+ * @returns Gateway address
+ */
+export const getGatewayAddressByChainId = (chainId: number): string => {
+	switch (chainId) {
+		case 1:
+			return MAINNET_GATEWAY_ADDRESS;
+
+		case 4:
+			return RINKEBY_GATEWAY_ADDRESS;
+
+		case 42161:
+			return ARBITRUM_MAINNET_GATEWAY_ADDRESS;
+
+		case 421611:
+			return ARBITRUM_RINKEBY_GATEWAY_ADDRESS;
+
+		default:
+			throw Error(`no gateway address for this network ${chainId}`);
+	}
 };
 
 /**
@@ -45,3 +76,12 @@ export const patchNetworkName = (network: ethers.providers.Network): ethers.prov
 			return network;
 	}
 };
+
+// returns the checksummed address if the address is valid, otherwise returns false
+export function isAddress(value: any): string | false {
+	try {
+		return getAddress(value);
+	} catch {
+		return false;
+	}
+}

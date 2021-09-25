@@ -2,20 +2,28 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import React, { useCallback, useEffect, useState } from 'react';
 import DepositConfirmationModal from './DepositConfirmationModal';
-import { ArbitrumMainnet } from '../_const/constants';
-import { useWeb3Provider } from '../App';
-import { getAvailableNetworkByChainId, getTargetNetworkOptions, isValidChain, patchNetworkName } from '../_utils/utils';
+import { ArbitrumMainnet } from '../constants/constants';
+import {
+	getAvailableNetworkByChainId,
+	getGatewayAddressByChainId,
+	getTargetNetworkOptions,
+	isValidChain,
+	patchNetworkName
+} from '../utils/utils';
 import { BigNumber } from '@ethersproject/bignumber';
 import { ethers } from 'ethers';
 import { UndefinedOr } from '@devprotocol/util-ts';
-import { AvailableNetwork } from '../_types/types';
+import { AvailableNetwork } from '../types/types';
+import { useWeb3Provider } from '../context/web3ProviderContext';
+import { useAllowance } from '../context/allowanceContext';
+import Approval from './approval/Approval';
 
 type DepositParams = {
 	currentChain: number | null;
 	devBalance: UndefinedOr<BigNumber>;
 };
 
-const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
+const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 	const [amount, setAmount] = useState<BigNumber>();
 	const [formValid, setFormValid] = useState(false);
 	const [displayModal, setDisplayModal] = useState(false);
@@ -25,6 +33,7 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 	const [selectedTargetChain, setSelectedTargetChain] = useState(ArbitrumMainnet);
 	const [targetChainOptions, setTargetChainOptions] = useState<AvailableNetwork[]>([]);
 	const web3Context = useWeb3Provider();
+	const allowanceContext = useAllowance();
 
 	const updateAmount = (val: string): void => {
 		// empty string
@@ -43,6 +52,21 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 			setFormValid(false);
 		}
 	};
+
+	const getAllowance = useCallback(async () => {
+		const currentProvider = web3Context?.web3Provider;
+		if (currentProvider && network && allowanceContext) {
+			const sourceNetwork = getAvailableNetworkByChainId(network.chainId);
+			const gatewayAddress = getGatewayAddressByChainId(network.chainId);
+			if (sourceNetwork) {
+				allowanceContext.fetchAllowance({
+					provider: currentProvider,
+					tokenAddress: sourceNetwork?.tokenAddress,
+					spenderAddress: gatewayAddress
+				});
+			}
+		}
+	}, [network, web3Context, allowanceContext]);
 
 	const getNetwork = useCallback(async (): Promise<void> => {
 		const currentProvider = web3Context?.web3Provider;
@@ -72,7 +96,8 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 	useEffect(() => {
 		setIsValidNetwork(currentChain ? isValidChain(currentChain) : false);
 		getNetwork();
-	}, [currentChain, getNetwork]);
+		getAllowance();
+	}, [currentChain, getNetwork, getAllowance]);
 
 	useEffect(() => {
 		const getProvider = async (): Promise<void> => {
@@ -106,8 +131,16 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 		updateAmount(amount);
 	};
 
+	// this is for testing allowance to reset
+	// const onRevoke = async () => {
+	// 	allowanceContext?.revoke({ network, provider: web3Context?.web3Provider });
+	// };
+
 	return (
 		<div>
+			{/** this is for testing allowance to reset */}
+			{/* <button onClick={onRevoke}>revoke</button> */}
+
 			<form onSubmit={launchModal}>
 				<div className="mb-4">
 					<div className="flex w-full items-end">
@@ -164,11 +197,20 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 					</select>
 				)}
 
+				{/** Approval */}
+				{allowanceContext && allowanceContext.allowance.isZero() && isConnected && (
+					<Approval
+						allowanceUpdated={() => console.log('allowance updated')}
+						onError={e => console.log('an approval error occurred: ', e)}
+						sourceNetwork={network}
+					/>
+				)}
+
 				{/** Connected to compatible chain */}
-				{isConnected && isValidNetwork && (
+				{isConnected && isValidNetwork && allowanceContext && allowanceContext.allowance.gt(0) && (
 					<div>
 						<button
-							className={`text-center w-full text-white py-3 rounded shadow border font-semibold ${
+							className={`text-center w-full text-white py-3 rounded shadow border font-semibold h-14 ${
 								formValid ? 'bg-blue-600' : 'bg-gray-400 cursor-not-allowed'
 							}`}
 							type="submit"
@@ -182,7 +224,7 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 				{isConnected && !isValidNetwork && (
 					<div>
 						<button
-							className={`text-center w-full text-white py-3 rounded shadow border font-semibold bg-gray-400 cursor-not-allowed`}
+							className={`text-center w-full text-white py-3 rounded shadow border font-semibold bg-gray-400 cursor-not-allowed h-14`}
 							disabled={true}>
 							Invalid Network
 						</button>
@@ -193,7 +235,7 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 				{!isConnected && (
 					<div>
 						<button
-							className={`text-center w-full text-white py-3 rounded shadow border font-semibold bg-gray-400 cursor-not-allowed`}
+							className={`text-center w-full text-white py-3 rounded shadow border font-semibold bg-gray-400 cursor-not-allowed h-14`}
 							disabled={true}>
 							Connect Wallet
 						</button>
@@ -205,7 +247,8 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 					<DepositConfirmationModal
 						setDisplayModal={setDisplayModal}
 						confirmTransaction={submit}
-						selectedNetwork={selectedTargetChain}
+						sourceNetwork={network}
+						targetNetwork={selectedTargetChain}
 						amount={amount}
 					/>
 				</div>
@@ -214,4 +257,4 @@ const Deposit: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 	);
 };
 
-export default Deposit;
+export default DepositForm;
