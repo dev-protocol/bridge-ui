@@ -1,4 +1,11 @@
-import { AvailableNetwork } from '../_types/types';
+import { AvailableNetwork } from '../types/types';
+
+// !!! TODO these need to be updated to correct bridge contracts
+export const MAINNET_GATEWAY_ADDRESS = '';
+export const ARBITRUM_MAINNET_GATEWAY_ADDRESS = '';
+export const RINKEBY_GATEWAY_ADDRESS = '0x917dc9a69F65dC3082D518192cd3725E1Fa96cA2';
+export const ARBITRUM_RINKEBY_GATEWAY_ADDRESS = '0x9b014455AcC2Fe90c52803849d0002aeEC184a06';
+// !!!
 
 export const ArbitrumMainnet: AvailableNetwork = {
 	name: 'Arbitrum Mainnet',

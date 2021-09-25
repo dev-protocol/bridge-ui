@@ -4,7 +4,7 @@ import detectEthereumProvider from '@metamask/detect-provider';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import { whenDefined } from '@devprotocol/util-ts';
 import React, { useEffect, useState } from 'react';
-import { useWeb3Provider } from '../App';
+import { useWeb3Provider } from '../context/web3ProviderContext';
 
 const providerOptions = {
 	injected: {

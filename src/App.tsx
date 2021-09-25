@@ -1,38 +1,17 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { ethers, providers } from 'ethers';
-import { UndefinedOr } from '@devprotocol/util-ts';
-import Deposit from './deposit/Deposit';
-import ConnectButton from './_components/ConnectButton';
+import React, { useEffect, useState } from 'react';
+import { ethers } from 'ethers';
+import DepositForm from './components/DepositForm';
+import ConnectButton from './components/ConnectButton';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Contract } from '@ethersproject/contracts';
-import erc20ABI from './_const/erc20.abi.json';
-import { getAvailableNetworkByChainId } from './_utils/utils';
-
-interface Web3ContextInterface {
-	web3Provider: UndefinedOr<providers.Web3Provider>;
-	setWeb3Provider: React.Dispatch<React.SetStateAction<UndefinedOr<providers.Web3Provider>>>;
-}
-
-export function useWeb3ProviderContext(): Web3ContextInterface {
-	const [web3Provider, setWeb3Provider] = useState<UndefinedOr<providers.Web3Provider>>(undefined);
-	const web3ProviderContext = useMemo(
-		() => ({
-			web3Provider,
-			setWeb3Provider
-		}),
-		[web3Provider, setWeb3Provider]
-	);
-	return web3ProviderContext;
-}
-
-const WebProviderContext = React.createContext<Web3ContextInterface | null>(null);
-
-export function useWeb3Provider(): Web3ContextInterface | null {
-	return useContext(WebProviderContext);
-}
+import erc20ABI from './constants/erc20.abi.json';
+import { getAvailableNetworkByChainId } from './utils/utils';
+import { useWeb3ProviderContext, WebProviderContext } from './context/web3ProviderContext';
+import { AllowanceContext, useAllowanceContext } from './context/allowanceContext';
 
 const App: React.FC = () => {
 	const web3ProviderContext = useWeb3ProviderContext();
+	const allowanceContext = useAllowanceContext();
 	const [currentChainId, setCurrentChainId] = useState<number | null>(null);
 	const [devBalance, setDevBalance] = useState<BigNumber>();
 
@@ -80,7 +59,9 @@ const App: React.FC = () => {
 				<main>
 					<div className="max-w-sm bg-white mx-auto my-12 p-8 rounded">
 						<div className="pt-4">
-							<Deposit currentChain={currentChainId} devBalance={devBalance} />
+							<AllowanceContext.Provider value={allowanceContext}>
+								<DepositForm currentChain={currentChainId} devBalance={devBalance} />
+							</AllowanceContext.Provider>
 						</div>
 					</div>
 				</main>
