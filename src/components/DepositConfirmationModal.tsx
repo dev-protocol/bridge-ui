@@ -3,8 +3,8 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ethers } from 'ethers';
-import React, { useEffect, useState } from 'react';
-import { useAllowanceContext } from '../context/allowanceContext';
+import React, { useContext, useEffect, useState } from 'react';
+import { AllowanceContext } from '../context/allowanceContext';
 import { AvailableNetwork } from '../types/types';
 import { getAvailableNetworkByChainId } from '../utils/utils';
 
@@ -24,7 +24,7 @@ const DepositConfirmationModal: React.FC<DepositModalParams> = ({
 	amount
 }: DepositModalParams) => {
 	const [validSourceNetwork, setValidSourceNetwork] = useState<UndefinedOr<AvailableNetwork>>();
-	const allowanceContext = useAllowanceContext();
+	const { allowance } = useContext(AllowanceContext);
 
 	useEffect(() => {
 		if (sourceNetwork) {
@@ -58,7 +58,7 @@ const DepositConfirmationModal: React.FC<DepositModalParams> = ({
 										</button>
 
 										{/** Contract has been approved */}
-										{allowanceContext.allowance.gt(0) && (
+										{allowance.gt(0) && (
 											<button
 												className="bg-blue-600 text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
 												type="button"

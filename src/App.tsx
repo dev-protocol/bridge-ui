@@ -7,11 +7,10 @@ import { Contract } from '@ethersproject/contracts';
 import erc20ABI from './constants/erc20.abi.json';
 import { getAvailableNetworkByChainId } from './utils/utils';
 import { useWeb3ProviderContext, WebProviderContext } from './context/web3ProviderContext';
-import { AllowanceContext, useAllowanceContext } from './context/allowanceContext';
+import { AllowanceProvider } from './context/allowanceContext';
 
 const App: React.FC = () => {
 	const web3ProviderContext = useWeb3ProviderContext();
-	const allowanceContext = useAllowanceContext();
 	const [currentChainId, setCurrentChainId] = useState<number | null>(null);
 	const [devBalance, setDevBalance] = useState<BigNumber>();
 
@@ -59,9 +58,9 @@ const App: React.FC = () => {
 				<main>
 					<div className="max-w-sm bg-white mx-auto my-12 p-8 rounded">
 						<div className="pt-4">
-							<AllowanceContext.Provider value={allowanceContext}>
+							<AllowanceProvider>
 								<DepositForm currentChain={currentChainId} devBalance={devBalance} />
-							</AllowanceContext.Provider>
+							</AllowanceProvider>
 						</div>
 					</div>
 				</main>
