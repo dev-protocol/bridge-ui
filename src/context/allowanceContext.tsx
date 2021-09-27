@@ -1,14 +1,8 @@
 import { UndefinedOr } from '@devprotocol/util-ts';
 import { ethers } from 'ethers';
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import React, { Dispatch, SetStateAction, useCallback, useState } from 'react';
 import erc20ABI from '../constants/erc20.abi.json';
 import { getAvailableNetworkByChainId, getGatewayAddressByChainId } from '../utils/utils';
-
-interface IFetchAllowanceParams {
-	provider: ethers.providers.Web3Provider;
-	tokenAddress: string;
-	spenderAddress: string;
-}
 
 interface IApproveParams {
 	tokenAddress: string;
@@ -22,25 +16,46 @@ interface IRevokeParams {
 	provider: UndefinedOr<ethers.providers.Web3Provider>;
 }
 
+interface IFetchAllowanceParams {
+	provider: ethers.providers.Web3Provider;
+	tokenAddress: string;
+	spenderAddress: string;
+}
+
 interface AllowanceContextInterface {
 	allowance: ethers.BigNumber;
-	setAllowance: React.Dispatch<React.SetStateAction<ethers.BigNumber>>;
-	fetchAllowance(params: IFetchAllowanceParams): Promise<void>;
+	setAllowance: Dispatch<SetStateAction<ethers.BigNumber>>;
 	approve(params: IApproveParams): Promise<boolean>;
 	loading: boolean;
 	setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 	revoke(params: IRevokeParams): Promise<void>;
+	fetchAllowance(params: IFetchAllowanceParams): Promise<void>;
 }
 
-export function useAllowanceContext(): AllowanceContextInterface {
+const allowance: AllowanceContextInterface = {
+	allowance: ethers.BigNumber.from(0),
+	setAllowance: () => {},
+	approve: async () => false,
+	loading: false,
+	setLoading: () => {},
+	revoke: async () => {},
+	fetchAllowance: async (_params: IFetchAllowanceParams) => {}
+};
+
+export const AllowanceContext = React.createContext(allowance);
+
+export const AllowanceProvider: React.FC = ({ children }) => {
 	const [allowance, setAllowance] = useState<ethers.BigNumber>(ethers.BigNumber.from(0));
 	const [loading, setLoading] = useState(false);
 
-	const fetchAllowance = async ({ provider, tokenAddress, spenderAddress }: IFetchAllowanceParams): Promise<void> => {
-		const userAddress = await provider.getSigner().getAddress();
-		const contract = new ethers.Contract(tokenAddress, erc20ABI, provider);
-		setAllowance((await contract.allowance(userAddress, spenderAddress)) ?? ethers.BigNumber.from(0));
-	};
+	const fetchAllowance = useCallback(
+		async ({ provider, tokenAddress, spenderAddress }: IFetchAllowanceParams): Promise<void> => {
+			const userAddress = await provider.getSigner().getAddress();
+			const contract = new ethers.Contract(tokenAddress, erc20ABI, provider);
+			setAllowance((await contract.allowance(userAddress, spenderAddress)) ?? ethers.BigNumber.from(0));
+		},
+		[setAllowance]
+	);
 
 	const approve = useCallback(
 		async ({
@@ -60,14 +75,15 @@ export function useAllowanceContext(): AllowanceContextInterface {
 				gasLimit: '65000'
 			});
 
-			contract.on('Approval', (_owner, _spender, _value) => {
-				fetchAllowance({ provider, tokenAddress, spenderAddress: gatewayAddress });
+			contract.on('Approval', async (_owner, _spender, _value) => {
+				await fetchAllowance({ provider, tokenAddress, spenderAddress: gatewayAddress });
+
 				setLoading(false);
 			});
 
 			return approval;
 		},
-		[]
+		[fetchAllowance]
 	);
 
 	// for testing
@@ -89,39 +105,21 @@ export function useAllowanceContext(): AllowanceContextInterface {
 			}
 
 			if (provider) {
-				try {
-					await approve({
-						gatewayAddress,
-						tokenAddress,
-						provider: provider,
-						amount: ethers.BigNumber.from(0)
-					});
-				} catch (error: any) {
-					console.log('an error has been CAUGHT: ', error);
-				}
+				await approve({
+					gatewayAddress,
+					tokenAddress,
+					provider: provider,
+					amount: ethers.BigNumber.from(0)
+				});
 			}
 		},
 		[approve]
 	);
 
-	const web3ProviderContext = useMemo(
-		() => ({
-			allowance,
-			setAllowance,
-			loading,
-			setLoading,
-			fetchAllowance,
-			approve,
-			// for testing allowance
-			revoke
-		}),
-		[allowance, setAllowance, approve, loading, setLoading, revoke]
+	return (
+		<AllowanceContext.Provider
+			value={{ allowance, setAllowance, loading, setLoading, revoke, approve, fetchAllowance }}>
+			{children}
+		</AllowanceContext.Provider>
 	);
-	return web3ProviderContext;
-}
-
-export const AllowanceContext = React.createContext<AllowanceContextInterface | null>(null);
-
-export function useAllowance(): AllowanceContextInterface | null {
-	return useContext(AllowanceContext);
-}
+};

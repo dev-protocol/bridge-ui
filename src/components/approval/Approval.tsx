@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { UndefinedOr } from '@devprotocol/util-ts';
 import { ethers } from 'ethers';
 import { getAvailableNetworkByChainId, getGatewayAddressByChainId } from '../../utils/utils';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
-import { useAllowance } from '../../context/allowanceContext';
+import { AllowanceContext } from '../../context/allowanceContext';
 
 type ApprovalParams = {
 	allowanceUpdated(): void;
@@ -16,15 +16,14 @@ const Approval: React.FC<ApprovalParams> = ({ sourceNetwork, onError, allowanceU
 	const [gatewayAddress, setGatewayAddress] = useState('');
 	const [sourceTokenAddress, setSourceTokenAddress] = useState('');
 	const web3Context = useWeb3Provider();
-	const allowanceContext = useAllowance();
+	const { approve, setLoading, loading } = useContext(AllowanceContext);
 
 	const onApprove = async (e: React.FormEvent) => {
 		e.preventDefault();
-		onError('');
 		const currentProvider = web3Context?.web3Provider;
-		if (currentProvider && allowanceContext) {
+		if (currentProvider) {
 			try {
-				const success = await allowanceContext.approve({
+				const success = await approve({
 					gatewayAddress,
 					tokenAddress: sourceTokenAddress,
 					provider: currentProvider
@@ -34,10 +33,10 @@ const Approval: React.FC<ApprovalParams> = ({ sourceNetwork, onError, allowanceU
 					setModalLaunched(false);
 				} else {
 					onError('An error occurred.');
-					allowanceContext.setLoading(false);
+					setLoading(false);
 				}
 			} catch (error: any) {
-				allowanceContext.setLoading(false);
+				setLoading(false);
 				onError(error.message);
 			}
 		}
@@ -61,16 +60,14 @@ const Approval: React.FC<ApprovalParams> = ({ sourceNetwork, onError, allowanceU
 	return (
 		<div>
 			<button
-				disabled={allowanceContext?.loading}
+				disabled={loading}
 				onClick={launchModal}
 				className={`text-center w-full text-white py-3 rounded shadow border font-semibold flex justify-center h-14 items-center ${
-					!allowanceContext?.loading ? 'bg-blue-600' : 'bg-blue-400 cursor-not-allowed'
+					!loading ? 'bg-blue-600' : 'bg-blue-400 cursor-not-allowed'
 				}`}>
-				{allowanceContext?.loading && (
-					<div className="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4"></div>
-				)}
+				{loading && <div className="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4"></div>}
 
-				{!allowanceContext?.loading && <span>Approve</span>}
+				{!loading && <span>Approve</span>}
 			</button>
 			{modalLaunched && (
 				<div>
@@ -93,13 +90,13 @@ const Approval: React.FC<ApprovalParams> = ({ sourceNetwork, onError, allowanceU
 										<button
 											onClick={onApprove}
 											className={`flex justify-center items-center text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150 w-32 h-12 ${
-												allowanceContext?.loading ? 'bg-blue-400' : 'bg-blue-600'
+												loading ? 'bg-blue-400' : 'bg-blue-600'
 											}`}>
-											{allowanceContext?.loading && (
+											{loading && (
 												<div className="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4"></div>
 											)}
 
-											{!allowanceContext?.loading && <span>Approve</span>}
+											{!loading && <span>Approve</span>}
 										</button>
 									</div>
 								</div>
