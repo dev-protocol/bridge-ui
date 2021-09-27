@@ -1,7 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import DepositConfirmationModal from './DepositConfirmationModal';
 import { ArbitrumMainnet } from '../constants/constants';
 import {
 	getAvailableNetworkByChainId,
@@ -17,6 +16,7 @@ import { AvailableNetwork } from '../types/types';
 import { useWeb3Provider } from '../context/web3ProviderContext';
 import { AllowanceContext } from '../context/allowanceContext';
 import Approval from './approval/Approval';
+import Convert from './convert/Convert';
 
 type DepositParams = {
 	currentChain: number | null;
@@ -26,7 +26,6 @@ type DepositParams = {
 const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 	const [amount, setAmount] = useState<BigNumber>();
 	const [formValid, setFormValid] = useState(false);
-	const [displayModal, setDisplayModal] = useState(false);
 	const [isConnected, setIsConnected] = useState(false);
 	const [isValidNetwork, setIsValidNetwork] = useState(false);
 	const [network, setNetwork] = useState<UndefinedOr<ethers.providers.Network>>();
@@ -116,15 +115,6 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 		getProvider();
 	}, [web3Context, getNetwork]);
 
-	const launchModal = (e: React.FormEvent): void => {
-		e.preventDefault();
-		setDisplayModal(true);
-	};
-
-	const submit = (): void => {
-		setDisplayModal(false);
-	};
-
 	const setMax = (e: React.FormEvent) => {
 		e.preventDefault();
 		const amount = devBalance ? ethers.utils.formatUnits(devBalance?.toString(), 18) : '0';
@@ -141,7 +131,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 			{/** this is for testing allowance to reset */}
 			{/* <button onClick={onRevoke}>revoke</button> */}
 
-			<form onSubmit={launchModal}>
+			<div>
 				<div className="mb-4">
 					<div className="flex w-full items-end">
 						<label className="block text-gray-700 text-sm font-bold flex-grow pr-2" htmlFor="username">
@@ -197,7 +187,12 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 					</select>
 				)}
 
-				{/** Approval */}
+				{/** VALID -> Connected to compatible chain */}
+				{isConnected && network && isValidNetwork && allowance.gt(0) && (
+					<Convert formValid={formValid} amount={amount} network={network} selectedTargetChain={selectedTargetChain} />
+				)}
+
+				{/** Approval Required */}
 				{allowance.isZero() && isConnected && (
 					<Approval
 						allowanceUpdated={() => console.log('allowance updated')}
@@ -206,21 +201,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 					/>
 				)}
 
-				{/** Connected to compatible chain */}
-				{isConnected && isValidNetwork && allowance.gt(0) && (
-					<div>
-						<button
-							className={`text-center w-full text-white py-3 rounded shadow border font-semibold h-14 ${
-								formValid ? 'bg-blue-600' : 'bg-gray-400 cursor-not-allowed'
-							}`}
-							type="submit"
-							disabled={!formValid}>
-							Convert
-						</button>
-					</div>
-				)}
-
-				{/** Connected to incompatible chain */}
+				{/** INVALID -> Connected to incompatible chain */}
 				{isConnected && !isValidNetwork && (
 					<div>
 						<button
@@ -231,7 +212,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 					</div>
 				)}
 
-				{/** Connected to incompatible chain */}
+				{/** INVALID -> Wallet not connected */}
 				{!isConnected && (
 					<div>
 						<button
@@ -241,18 +222,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 						</button>
 					</div>
 				)}
-			</form>
-			{displayModal && (
-				<div>
-					<DepositConfirmationModal
-						setDisplayModal={setDisplayModal}
-						confirmTransaction={submit}
-						sourceNetwork={network}
-						targetNetwork={selectedTargetChain}
-						amount={amount}
-					/>
-				</div>
-			)}
+			</div>
 		</div>
 	);
 };
