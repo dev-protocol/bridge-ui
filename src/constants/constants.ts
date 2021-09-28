@@ -3,9 +3,16 @@ import { AvailableNetwork } from '../types/types';
 // !!! TODO these need to be updated to correct bridge contracts
 export const MAINNET_GATEWAY_ADDRESS = '';
 export const ARBITRUM_MAINNET_GATEWAY_ADDRESS = '';
-export const RINKEBY_GATEWAY_ADDRESS = '0x917dc9a69F65dC3082D518192cd3725E1Fa96cA2';
-export const ARBITRUM_RINKEBY_GATEWAY_ADDRESS = '0x9b014455AcC2Fe90c52803849d0002aeEC184a06';
+// export const RINKEBY_GATEWAY_ADDRESS = '0x917dc9a69F65dC3082D518192cd3725E1Fa96cA2';
+export const RINKEBY_GATEWAY_ADDRESS = '0x91169Dbb45e6804743F94609De50D511C437572E';
+// export const ARBITRUM_RINKEBY_GATEWAY_ADDRESS = '0x9b014455AcC2Fe90c52803849d0002aeEC184a06';
+export const ARBITRUM_RINKEBY_GATEWAY_ADDRESS = '0x195C107F3F75c4C93Eba7d9a1312F19305d6375f';
 // !!!
+
+export const L1_MAINNET_DEV_ADDRESS = '';
+export const L1_RINKEBY_DEV_ADDRESS = '';
+export const ARB_MAINNET_DEV_ADDRESS = '';
+export const ARB_RINKEBY_DEV_ADDRESS = '';
 
 export const ArbitrumMainnet: AvailableNetwork = {
 	name: 'Arbitrum Mainnet',
