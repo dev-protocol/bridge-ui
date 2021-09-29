@@ -8,6 +8,7 @@ import erc20ABI from './constants/erc20.abi.json';
 import { getAvailableNetworkByChainId } from './utils/utils';
 import { useWeb3ProviderContext, WebProviderContext } from './context/web3ProviderContext';
 import { AllowanceProvider } from './context/allowanceContext';
+import { BridgeProvider } from './context/bridgeContext';
 
 const App: React.FC = () => {
 	const web3ProviderContext = useWeb3ProviderContext();
@@ -58,9 +59,11 @@ const App: React.FC = () => {
 				<main>
 					<div className="max-w-sm bg-white mx-auto my-12 p-8 rounded">
 						<div className="pt-4">
-							<AllowanceProvider>
-								<DepositForm currentChain={currentChainId} devBalance={devBalance} />
-							</AllowanceProvider>
+							<BridgeProvider provider={web3ProviderContext?.web3Provider}>
+								<AllowanceProvider>
+									<DepositForm currentChain={currentChainId} devBalance={devBalance} />
+								</AllowanceProvider>
+							</BridgeProvider>
 						</div>
 					</div>
 				</main>

@@ -7,7 +7,7 @@ import { getDEVAddressByChainId } from '../utils/utils';
 
 interface IBridgeProviderParams {
 	children: React.ReactNode;
-	provider: ethers.providers.Web3Provider;
+	provider: UndefinedOr<ethers.providers.Web3Provider>;
 }
 
 interface ICreateBridgeParams {
@@ -104,8 +104,12 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 		console.log('withdraw res', res);
 	};
 
-	const _getL1TokenAddress = (): UndefinedOr<string> => {
-		const network = networks[provider.network.chainId];
+	const _getL1TokenAddress = async (): Promise<UndefinedOr<string>> => {
+		if (!provider) {
+			return;
+		}
+
+		const network = networks[(await provider.getNetwork()).chainId];
 		if (!network) {
 			console.error('invalid network');
 			return;
@@ -122,16 +126,22 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 	};
 
 	useEffect(() => {
-		console.log('network updated!');
-		const network = networks[provider.network.chainId];
-		if (!network) {
-			return;
-		}
-		const partnerNetwork = networks[network.partnerChainID];
+		const buildBridge = async () => {
+			if (!provider) {
+				return;
+			}
 
-		// set Bridge
-		if (network.isArbitrum) createL2Bridge({ provider, network, partnerNetwork });
-		else createL1Bridge({ provider, network, partnerNetwork });
+			const network = networks[(await provider.getNetwork()).chainId];
+			if (!network) {
+				return;
+			}
+			const partnerNetwork = networks[network.partnerChainID];
+
+			// set Bridge
+			if (network.isArbitrum) createL2Bridge({ provider, network, partnerNetwork });
+			else createL1Bridge({ provider, network, partnerNetwork });
+		};
+		buildBridge();
 	}, [provider, createL1Bridge, createL2Bridge]);
 
 	return <BridgeContext.Provider value={{ bridge, deposit, withdraw }}>{children}</BridgeContext.Provider>;
