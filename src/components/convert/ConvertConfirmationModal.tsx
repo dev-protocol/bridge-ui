@@ -4,9 +4,9 @@ import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ethers } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
-import { AllowanceContext } from '../context/allowanceContext';
-import { AvailableNetwork } from '../types/types';
-import { getAvailableNetworkByChainId } from '../utils/utils';
+import { AllowanceContext } from '../../context/allowanceContext';
+import { AvailableNetwork } from '../../types/types';
+import { getAvailableNetworkByChainId } from '../../utils/utils';
 
 type DepositModalParams = {
 	setDisplayModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -14,6 +14,7 @@ type DepositModalParams = {
 	sourceNetwork: UndefinedOr<ethers.providers.Network>; // user can have incorrect network loaded on metamask
 	targetNetwork: AvailableNetwork; // but only valid networks selectable for target
 	amount: UndefinedOr<BigNumber>;
+	loading: boolean;
 };
 
 const DepositConfirmationModal: React.FC<DepositModalParams> = ({
@@ -21,7 +22,8 @@ const DepositConfirmationModal: React.FC<DepositModalParams> = ({
 	confirmTransaction,
 	sourceNetwork,
 	targetNetwork,
-	amount
+	amount,
+	loading
 }: DepositModalParams) => {
 	const [validSourceNetwork, setValidSourceNetwork] = useState<UndefinedOr<AvailableNetwork>>();
 	const { allowance } = useContext(AllowanceContext);
@@ -57,13 +59,16 @@ const DepositConfirmationModal: React.FC<DepositModalParams> = ({
 											Cancel
 										</button>
 
-										{/** Contract has been approved */}
 										{allowance.gt(0) && (
 											<button
-												className="bg-blue-600 text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+												className="bg-blue-600 text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150 w-28 flex justify-center"
 												type="button"
 												onClick={() => confirmTransaction()}>
-												Convert DEV
+												{loading && (
+													<div className="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4"></div>
+												)}
+
+												{!loading && <span>Convert</span>}
 											</button>
 										)}
 									</div>

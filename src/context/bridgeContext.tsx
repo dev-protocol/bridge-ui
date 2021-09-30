@@ -3,6 +3,7 @@ import { Bridge, networks } from 'arb-ts';
 import { Network } from 'arb-ts/dist/lib/networks';
 import { ethers } from 'arb-ts/node_modules/ethers';
 import React, { createContext, useCallback, useEffect, useState } from 'react';
+import { useInterval } from '../hooks/useInterval';
 import { getDEVAddressByChainId } from '../utils/utils';
 
 interface IBridgeProviderParams {
@@ -32,6 +33,69 @@ export const BridgeContext = createContext(bridgeContext);
 
 export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, provider }: IBridgeProviderParams) => {
 	const [bridge, setBridge] = useState<UndefinedOr<Bridge>>(undefined);
+	const [pollDelay] = useState(10000);
+	const [isPolling] = useState(true);
+	const [l1PendingTxHashes, setL1PendingTxHashes] = useState<string[]>([]);
+	const [l2PendingTxHashes, setL2PendingTxHashes] = useState<string[]>([]);
+	const [txReceipts, setTxReceipts] = useState<ethers.providers.TransactionReceipt[]>([]);
+
+	// poll l1 txs
+	useInterval(
+		async () => {
+			if (!bridge) {
+				return;
+			}
+			for (const hash of l1PendingTxHashes) {
+				try {
+					const l1Tx = await bridge.getL1Transaction(hash);
+
+					_addTxReceipt(l1Tx);
+
+					const l2TxHash = await bridge.getL2TxHashByRetryableTicket(hash);
+					if (!l2PendingTxHashes.includes(l2TxHash)) {
+						setL2PendingTxHashes([l2TxHash, ...l2PendingTxHashes]);
+					}
+
+					if (l1Tx.confirmations > 0) {
+						setL1PendingTxHashes(l1PendingTxHashes.filter(_hash => _hash !== hash));
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			}
+		},
+		isPolling ? pollDelay : 0
+	);
+
+	// poll l2 txs
+	useInterval(
+		async () => {
+			if (!bridge) {
+				return;
+			}
+			for (const hash of l2PendingTxHashes) {
+				try {
+					const l2Tx = await bridge.getL2Transaction(hash);
+
+					_addTxReceipt(l2Tx);
+
+					if (l2Tx.confirmations > 0) {
+						setL2PendingTxHashes(l2PendingTxHashes.filter(_hash => _hash !== hash));
+					}
+				} catch (error) {
+					console.log(error);
+				}
+			}
+		},
+		isPolling ? pollDelay : 0
+	);
+
+	const _addTxReceipt = (txReceipt: ethers.providers.TransactionReceipt) => {
+		const exists = txReceipts.some(receipt => receipt.transactionHash === txReceipt.transactionHash);
+		if (!exists) {
+			setTxReceipts([txReceipt, ...txReceipts]);
+		}
+	};
 
 	const createL1Bridge = useCallback(
 		async ({ provider, network, partnerNetwork }: ICreateBridgeParams): Promise<void> => {
@@ -74,16 +138,15 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 			return;
 		}
 
-		const l1ChainId = _getL1TokenAddress();
-		if (!l1ChainId) {
+		const l1TokenAddress = await _getL1TokenAddress();
+		if (!l1TokenAddress) {
 			console.error('error fetching l1ChainId');
 			return;
 		}
 
-		const l1TokenAddress = getDEVAddressByChainId(+l1ChainId);
+		const res = await bridge.deposit(l1TokenAddress, ethers.utils.parseUnits(amount.toString()));
 
-		const res = await bridge.deposit(l1TokenAddress, amount);
-		console.log('success is: ', res);
+		setL1PendingTxHashes([...l1PendingTxHashes, res.hash]);
 	};
 
 	const withdraw = async (amount: ethers.BigNumber) => {
@@ -92,15 +155,13 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 			return;
 		}
 
-		const l1ChainId = _getL1TokenAddress();
-		if (!l1ChainId) {
+		const l1TokenAddress = await _getL1TokenAddress();
+		if (!l1TokenAddress) {
 			console.error('error fetching l1ChainId');
 			return;
 		}
 
-		const l1TokenAddress = getDEVAddressByChainId(+l1ChainId);
-
-		const res = await bridge.withdrawERC20(l1TokenAddress, amount);
+		const res = await bridge.withdrawERC20(l1TokenAddress, ethers.utils.parseUnits(amount.toString()));
 		console.log('withdraw res', res);
 	};
 

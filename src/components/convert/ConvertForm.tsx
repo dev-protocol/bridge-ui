@@ -1,22 +1,22 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { ArbitrumMainnet } from '../constants/constants';
+import { ArbitrumMainnet } from '../../constants/constants';
 import {
 	getAvailableNetworkByChainId,
 	getGatewayAddressByChainId,
 	getTargetNetworkOptions,
 	isValidChain,
 	patchNetworkName
-} from '../utils/utils';
+} from '../../utils/utils';
 import { BigNumber } from '@ethersproject/bignumber';
 import { ethers } from 'ethers';
 import { UndefinedOr } from '@devprotocol/util-ts';
-import { AvailableNetwork } from '../types/types';
-import { useWeb3Provider } from '../context/web3ProviderContext';
-import { AllowanceContext } from '../context/allowanceContext';
-import Approval from './approval/Approval';
-import Convert from './convert/Convert';
+import { AvailableNetwork } from '../../types/types';
+import { useWeb3Provider } from '../../context/web3ProviderContext';
+import { AllowanceContext } from '../../context/allowanceContext';
+import Approval from '../approval/Approval';
+import Convert from './Convert';
 
 type DepositParams = {
 	currentChain: number | null;

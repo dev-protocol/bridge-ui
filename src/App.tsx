@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
-import DepositForm from './components/DepositForm';
+import DepositForm from './components/convert/ConvertForm';
 import ConnectButton from './components/ConnectButton';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Contract } from '@ethersproject/contracts';

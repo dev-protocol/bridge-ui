@@ -10,9 +10,9 @@ export const ARBITRUM_RINKEBY_GATEWAY_ADDRESS = '0x195C107F3F75c4C93Eba7d9a1312F
 // !!!
 
 export const L1_MAINNET_DEV_ADDRESS = '';
-export const L1_RINKEBY_DEV_ADDRESS = '';
+export const L1_RINKEBY_DEV_ADDRESS = '0xa21cb351fc29acb7c3901270a5259bf5e68f11d8'; // TODO: this needs to be changed is Dummy DEV for testing
 export const ARB_MAINNET_DEV_ADDRESS = '';
-export const ARB_RINKEBY_DEV_ADDRESS = '';
+export const ARB_RINKEBY_DEV_ADDRESS = '0x53A8FC7d1663807eAC3daafa81B5B3C81f028479'; // TODO: this needs to be changed is Dummy DEV for testing
 
 export const ArbitrumMainnet: AvailableNetwork = {
 	name: 'Arbitrum Mainnet',
