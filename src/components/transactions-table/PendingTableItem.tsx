@@ -32,7 +32,9 @@ const PendingTableItem: React.FC<PendingTableItemParams> = ({ item, layer }) => 
 			</td>
 			<td>Pending</td>
 			<td>
-				{estimatedArrivalTime.getMinutes() - now.getMinutes()}{' '}
+				{estimatedArrivalTime.getMinutes() - now.getMinutes() > 0
+					? estimatedArrivalTime.getMinutes() - now.getMinutes()
+					: '< 1'}{' '}
 				{item.direction === ConvertDirection.DEPOSIT ? 'Minutes' : 'Days'}
 			</td>
 			<td>

@@ -21,7 +21,7 @@ interface IBridgeContext {
 	bridge: UndefinedOr<Bridge>;
 	l1PendingTxs: IPendingItem[];
 	l2PendingTxs: IPendingItem[];
-	txReceipts: ethers.providers.TransactionReceipt[];
+	txReceipts: IReceiptItem[];
 	deposit(amount: ethers.BigNumber): Promise<void>;
 	withdraw(amount: ethers.BigNumber): Promise<void>;
 }
@@ -35,6 +35,13 @@ export interface IPendingItem {
 	direction: ConvertDirection;
 	hash: string;
 	value: ethers.BigNumber;
+}
+
+export interface IReceiptItem {
+	receipt: ethers.providers.TransactionReceipt;
+	value: ethers.BigNumber;
+	layer: 1 | 2;
+	direction: ConvertDirection;
 }
 
 const bridgeContext: IBridgeContext = {
@@ -54,7 +61,7 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 	const [isPolling] = useState(true);
 	const [l1PendingTxs, setL1PendingTxHashes] = useState<IPendingItem[]>([]);
 	const [l2PendingTxs, setL2PendingTxHashes] = useState<IPendingItem[]>([]);
-	const [txReceipts, setTxReceipts] = useState<ethers.providers.TransactionReceipt[]>([]);
+	const [txReceipts, setTxReceipts] = useState<IReceiptItem[]>([]);
 
 	// poll l1 txs
 	useInterval(
@@ -66,7 +73,12 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 				try {
 					const l1Tx = await bridge.getL1Transaction(tx.hash);
 
-					_addTxReceipt(l1Tx);
+					_addTxReceipt({
+						receipt: l1Tx,
+						layer: 1,
+						value: tx.value,
+						direction: tx.direction
+					});
 
 					const l2TxHash = await bridge.getL2TxHashByRetryableTicket(tx.hash);
 					if (!l2PendingTxs.some(item => item.hash === l2TxHash)) {
@@ -94,7 +106,12 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 				try {
 					const l2Tx = await bridge.getL2Transaction(tx.hash);
 
-					_addTxReceipt(l2Tx);
+					_addTxReceipt({
+						receipt: l2Tx,
+						layer: 2,
+						value: tx.value,
+						direction: tx.direction
+					});
 
 					if (l2Tx.confirmations > 0) {
 						setL2PendingTxHashes(l2PendingTxs.filter(item => item.hash !== tx.hash));
@@ -107,8 +124,8 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 		isPolling ? pollDelay : 0
 	);
 
-	const _addTxReceipt = (txReceipt: ethers.providers.TransactionReceipt) => {
-		const exists = txReceipts.some(receipt => receipt.transactionHash === txReceipt.transactionHash);
+	const _addTxReceipt = (txReceipt: IReceiptItem) => {
+		const exists = txReceipts.some(item => item.receipt.transactionHash === txReceipt.receipt.transactionHash);
 		if (!exists) {
 			setTxReceipts([txReceipt, ...txReceipts]);
 		}
