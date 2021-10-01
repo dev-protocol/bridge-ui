@@ -19,12 +19,29 @@ interface ICreateBridgeParams {
 
 interface IBridgeContext {
 	bridge: UndefinedOr<Bridge>;
+	l1PendingTxs: IPendingItem[];
+	l2PendingTxs: IPendingItem[];
+	txReceipts: ethers.providers.TransactionReceipt[];
 	deposit(amount: ethers.BigNumber): Promise<void>;
 	withdraw(amount: ethers.BigNumber): Promise<void>;
 }
 
+export enum ConvertDirection {
+	WITHDRAW = 'Withdraw',
+	DEPOSIT = 'Deposit'
+}
+
+export interface IPendingItem {
+	direction: ConvertDirection;
+	hash: string;
+	value: ethers.BigNumber;
+}
+
 const bridgeContext: IBridgeContext = {
 	bridge: undefined,
+	l1PendingTxs: [],
+	l2PendingTxs: [],
+	txReceipts: [],
 	deposit: async _ => {},
 	withdraw: async _ => {}
 };
@@ -35,8 +52,8 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 	const [bridge, setBridge] = useState<UndefinedOr<Bridge>>(undefined);
 	const [pollDelay] = useState(10000);
 	const [isPolling] = useState(true);
-	const [l1PendingTxHashes, setL1PendingTxHashes] = useState<string[]>([]);
-	const [l2PendingTxHashes, setL2PendingTxHashes] = useState<string[]>([]);
+	const [l1PendingTxs, setL1PendingTxHashes] = useState<IPendingItem[]>([]);
+	const [l2PendingTxs, setL2PendingTxHashes] = useState<IPendingItem[]>([]);
 	const [txReceipts, setTxReceipts] = useState<ethers.providers.TransactionReceipt[]>([]);
 
 	// poll l1 txs
@@ -45,19 +62,19 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 			if (!bridge) {
 				return;
 			}
-			for (const hash of l1PendingTxHashes) {
+			for (const tx of l1PendingTxs) {
 				try {
-					const l1Tx = await bridge.getL1Transaction(hash);
+					const l1Tx = await bridge.getL1Transaction(tx.hash);
 
 					_addTxReceipt(l1Tx);
 
-					const l2TxHash = await bridge.getL2TxHashByRetryableTicket(hash);
-					if (!l2PendingTxHashes.includes(l2TxHash)) {
-						setL2PendingTxHashes([l2TxHash, ...l2PendingTxHashes]);
+					const l2TxHash = await bridge.getL2TxHashByRetryableTicket(tx.hash);
+					if (!l2PendingTxs.some(item => item.hash === l2TxHash)) {
+						setL2PendingTxHashes([{ direction: tx.direction, hash: l2TxHash, value: tx.value }, ...l2PendingTxs]);
 					}
 
 					if (l1Tx.confirmations > 0) {
-						setL1PendingTxHashes(l1PendingTxHashes.filter(_hash => _hash !== hash));
+						setL1PendingTxHashes(l1PendingTxs.filter(item => item.hash !== tx.hash));
 					}
 				} catch (error) {
 					console.log(error);
@@ -73,14 +90,14 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 			if (!bridge) {
 				return;
 			}
-			for (const hash of l2PendingTxHashes) {
+			for (const tx of l2PendingTxs) {
 				try {
-					const l2Tx = await bridge.getL2Transaction(hash);
+					const l2Tx = await bridge.getL2Transaction(tx.hash);
 
 					_addTxReceipt(l2Tx);
 
 					if (l2Tx.confirmations > 0) {
-						setL2PendingTxHashes(l2PendingTxHashes.filter(_hash => _hash !== hash));
+						setL2PendingTxHashes(l2PendingTxs.filter(item => item.hash !== tx.hash));
 					}
 				} catch (error) {
 					console.log(error);
@@ -144,9 +161,18 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 			return;
 		}
 
-		const res = await bridge.deposit(l1TokenAddress, ethers.utils.parseUnits(amount.toString()));
+		const parsedAmount = ethers.utils.parseUnits(amount.toString());
 
-		setL1PendingTxHashes([...l1PendingTxHashes, res.hash]);
+		const res = await bridge.deposit(l1TokenAddress, parsedAmount);
+
+		setL1PendingTxHashes([
+			...l1PendingTxs,
+			{
+				direction: ConvertDirection.DEPOSIT,
+				hash: res.hash,
+				value: parsedAmount
+			}
+		]);
 	};
 
 	const withdraw = async (amount: ethers.BigNumber) => {
@@ -205,5 +231,9 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 		buildBridge();
 	}, [provider, createL1Bridge, createL2Bridge]);
 
-	return <BridgeContext.Provider value={{ bridge, deposit, withdraw }}>{children}</BridgeContext.Provider>;
+	return (
+		<BridgeContext.Provider value={{ bridge, deposit, withdraw, l1PendingTxs, l2PendingTxs, txReceipts }}>
+			{children}
+		</BridgeContext.Provider>
+	);
 };

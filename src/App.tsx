@@ -9,6 +9,7 @@ import { getAvailableNetworkByChainId } from './utils/utils';
 import { useWeb3ProviderContext, WebProviderContext } from './context/web3ProviderContext';
 import { AllowanceProvider } from './context/allowanceContext';
 import { BridgeProvider } from './context/bridgeContext';
+import TransactionsTable from './components/transactions-table/TransactionsTable';
 
 const App: React.FC = () => {
 	const web3ProviderContext = useWeb3ProviderContext();
@@ -57,15 +58,17 @@ const App: React.FC = () => {
 					</div>
 				</header>
 				<main>
-					<div className="max-w-sm bg-white mx-auto my-12 p-8 rounded">
-						<div className="pt-4">
-							<BridgeProvider provider={web3ProviderContext?.web3Provider}>
-								<AllowanceProvider>
+					<BridgeProvider provider={web3ProviderContext?.web3Provider}>
+						<AllowanceProvider>
+							<div className="max-w-sm bg-white mx-auto my-12 p-8 rounded">
+								<div className="pt-4">
 									<DepositForm currentChain={currentChainId} devBalance={devBalance} />
-								</AllowanceProvider>
-							</BridgeProvider>
-						</div>
-					</div>
+								</div>
+							</div>
+
+							<TransactionsTable />
+						</AllowanceProvider>
+					</BridgeProvider>
 				</main>
 			</div>
 		</WebProviderContext.Provider>

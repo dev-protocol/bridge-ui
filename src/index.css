@@ -42,3 +42,9 @@ input[type='number'] {
 		transform: rotate(360deg);
 	}
 }
+
+td,
+th {
+	padding: 5px 10px;
+	text-align: left;
+}
