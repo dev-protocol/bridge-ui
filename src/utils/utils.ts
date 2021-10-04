@@ -13,6 +13,7 @@ import {
 } from '../constants/constants';
 import { AvailableNetwork } from '../types/types';
 import { getAddress } from '@ethersproject/address';
+import { Network } from 'arb-ts/dist/lib/networks';
 
 export const getAvailableNetworkByChainId = (id: number): UndefinedOr<AvailableNetwork> =>
 	AvailableNetworks.find(network => network.chainId === id);
@@ -108,3 +109,23 @@ export function isAddress(value: any): string | false {
 		return false;
 	}
 }
+
+export const getRpcUrl = (network: Network): UndefinedOr<string> => {
+	switch (+network.chainID) {
+		// Mainnet
+		case 1:
+			return `https://mainnet.infura.io/v3/${process.env.REACT_APP_INFURA_KEY}`;
+
+		// Rinkeby
+		case 4:
+			return `https://rinkeby.infura.io/v3/${process.env.REACT_APP_INFURA_KEY}`;
+
+		// RinkArby
+		case 421611:
+			return 'https://rinkeby.arbitrum.io/rpc';
+
+		// Arbitrum Mainnet
+		case 42161:
+			return `https://arbitrum-mainnet.infura.io/v3/${process.env.REACT_APP_INFURA_KEY}`;
+	}
+};

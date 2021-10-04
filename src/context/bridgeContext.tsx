@@ -4,7 +4,7 @@ import { Network } from 'arb-ts/dist/lib/networks';
 import { ethers } from 'arb-ts/node_modules/ethers';
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import { useInterval } from '../hooks/useInterval';
-import { getDEVAddressByChainId } from '../utils/utils';
+import { getDEVAddressByChainId, getRpcUrl } from '../utils/utils';
 
 interface IBridgeProviderParams {
 	children: React.ReactNode;
@@ -151,17 +151,21 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 
 	const createL2Bridge = useCallback(
 		async ({ provider, network, partnerNetwork }: ICreateBridgeParams): Promise<void> => {
-			const ethProvider = new ethers.providers.JsonRpcProvider(partnerNetwork.rpcURL);
-			const arbProvider = provider;
-			const l1Signer = ethProvider.getSigner(window.ethereum?.selectedAddress);
-			const l2Signer = arbProvider.getSigner(0);
-			const bridge = await Bridge.init(
-				l1Signer,
-				l2Signer,
-				network.tokenBridge.l1ERC20Gateway, // will need to change to l1CustomGateway
-				network.tokenBridge.l2ERC20Gateway // will need to change to l2CustomGateway
-			);
-			setBridge(bridge);
+			try {
+				const ethProvider = new ethers.providers.JsonRpcProvider(getRpcUrl(partnerNetwork));
+				const arbProvider = provider;
+				const l1Signer = ethProvider.getSigner(window.ethereum?.selectedAddress);
+				const l2Signer = arbProvider.getSigner();
+				const bridge = await Bridge.init(
+					l1Signer,
+					l2Signer,
+					network.tokenBridge.l1ERC20Gateway, // will need to change to l1CustomGateway
+					network.tokenBridge.l2ERC20Gateway // will need to change to l2CustomGateway
+				);
+				setBridge(bridge);
+			} catch (error) {
+				console.log('error creating l2 bridge: ', error);
+			}
 		},
 		[setBridge]
 	);
