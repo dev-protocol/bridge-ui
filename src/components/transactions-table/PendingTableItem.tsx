@@ -31,12 +31,15 @@ const PendingTableItem: React.FC<PendingTableItemParams> = ({ item, layer }) => 
 				{`L${layer}`} {item.direction}
 			</td>
 			<td>Pending</td>
-			<td>
-				{estimatedArrivalTime.getMinutes() - now.getMinutes() > 0
-					? estimatedArrivalTime.getMinutes() - now.getMinutes()
-					: '< 1'}{' '}
-				{item.direction === ConvertDirection.DEPOSIT ? 'Minutes' : 'Days'}
-			</td>
+			{item.direction === ConvertDirection.DEPOSIT && (
+				<td>
+					{estimatedArrivalTime.getMinutes() - now.getMinutes() > 0
+						? estimatedArrivalTime.getMinutes() - now.getMinutes()
+						: '< 1'}{' '}
+					Minutes
+				</td>
+			)}
+			{item.direction === ConvertDirection.WITHDRAW && <td>{estimatedArrivalTime.toLocaleDateString('en-US')}</td>}
 			<td>
 				<a>
 					{item.hash.substr(0, 6)}

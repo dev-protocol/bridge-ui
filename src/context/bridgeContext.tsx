@@ -208,8 +208,18 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 			return;
 		}
 
-		const res = await bridge.withdrawERC20(l1TokenAddress, ethers.utils.parseUnits(amount.toString()));
-		console.log('withdraw res', res);
+		const parsedAmount = ethers.utils.parseUnits(amount.toString());
+
+		const withdrawTx = await bridge.withdrawERC20(l1TokenAddress, parsedAmount);
+
+		setL2PendingTxHashes([
+			...l1PendingTxs,
+			{
+				direction: ConvertDirection.WITHDRAW,
+				hash: withdrawTx.hash,
+				value: parsedAmount
+			}
+		]);
 	};
 
 	const _getL1TokenAddress = async (): Promise<UndefinedOr<string>> => {

@@ -188,12 +188,20 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 				)}
 
 				{/** VALID -> Connected to compatible chain */}
-				{isConnected && network && isValidNetwork && allowance.gt(0) && (
-					<Convert formValid={formValid} amount={amount} network={network} selectedTargetChain={selectedTargetChain} />
-				)}
+				{isConnected &&
+					network &&
+					isValidNetwork &&
+					((selectedTargetChain.layer == 2 && allowance.gt(0)) || selectedTargetChain.layer == 1) && (
+						<Convert
+							formValid={formValid}
+							amount={amount}
+							network={network}
+							selectedTargetChain={selectedTargetChain}
+						/>
+					)}
 
 				{/** Approval Required */}
-				{allowance.isZero() && isConnected && (
+				{allowance.isZero() && isConnected && selectedTargetChain.layer == 2 && (
 					<Approval
 						allowanceUpdated={() => console.log('allowance updated')}
 						onError={e => console.log('an approval error occurred: ', e)}

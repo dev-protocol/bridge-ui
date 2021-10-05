@@ -25,8 +25,8 @@ const Convert: React.FC<ConvertParams> = ({ formValid, amount, network, selected
 
 	const submitTransaction = async (): Promise<void> => {
 		setLoading(true);
-		const validNetwork = networks[network.chainId];
-		if (!validNetwork) {
+		const currentNetwork = networks[network.chainId];
+		if (!currentNetwork) {
 			setLoading(false);
 			return;
 		}
@@ -37,7 +37,7 @@ const Convert: React.FC<ConvertParams> = ({ formValid, amount, network, selected
 		}
 
 		try {
-			if (validNetwork.isArbitrum) {
+			if (currentNetwork.isArbitrum) {
 				// Withdraw
 				await bridgeContext.withdraw(amount);
 			} else {
