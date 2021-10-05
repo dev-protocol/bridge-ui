@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
-import DepositForm from './components/DepositForm';
+import DepositForm from './components/convert/ConvertForm';
 import ConnectButton from './components/ConnectButton';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Contract } from '@ethersproject/contracts';
@@ -8,6 +8,8 @@ import erc20ABI from './constants/erc20.abi.json';
 import { getAvailableNetworkByChainId } from './utils/utils';
 import { useWeb3ProviderContext, WebProviderContext } from './context/web3ProviderContext';
 import { AllowanceProvider } from './context/allowanceContext';
+import { BridgeProvider } from './context/bridgeContext';
+import TransactionsTable from './components/transactions-table/TransactionsTable';
 
 const App: React.FC = () => {
 	const web3ProviderContext = useWeb3ProviderContext();
@@ -56,13 +58,17 @@ const App: React.FC = () => {
 					</div>
 				</header>
 				<main>
-					<div className="max-w-sm bg-white mx-auto my-12 p-8 rounded">
-						<div className="pt-4">
-							<AllowanceProvider>
-								<DepositForm currentChain={currentChainId} devBalance={devBalance} />
-							</AllowanceProvider>
-						</div>
-					</div>
+					<BridgeProvider provider={web3ProviderContext?.web3Provider}>
+						<AllowanceProvider>
+							<div className="max-w-sm bg-white mx-auto my-12 p-8 rounded">
+								<div className="pt-4">
+									<DepositForm currentChain={currentChainId} devBalance={devBalance} />
+								</div>
+							</div>
+
+							<TransactionsTable />
+						</AllowanceProvider>
+					</BridgeProvider>
 				</main>
 			</div>
 		</WebProviderContext.Provider>

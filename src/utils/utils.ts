@@ -3,12 +3,17 @@ import { ethers } from 'ethers';
 import {
 	ARBITRUM_MAINNET_GATEWAY_ADDRESS,
 	ARBITRUM_RINKEBY_GATEWAY_ADDRESS,
+	ARB_MAINNET_DEV_ADDRESS,
+	ARB_RINKEBY_DEV_ADDRESS,
 	AvailableNetworks,
+	L1_MAINNET_DEV_ADDRESS,
+	L1_RINKEBY_DEV_ADDRESS,
 	MAINNET_GATEWAY_ADDRESS,
 	RINKEBY_GATEWAY_ADDRESS
 } from '../constants/constants';
 import { AvailableNetwork } from '../types/types';
 import { getAddress } from '@ethersproject/address';
+import { Network } from 'arb-ts/dist/lib/networks';
 
 export const getAvailableNetworkByChainId = (id: number): UndefinedOr<AvailableNetwork> =>
 	AvailableNetworks.find(network => network.chainId === id);
@@ -41,6 +46,25 @@ export const getGatewayAddressByChainId = (chainId: number): string => {
 
 		case 421611:
 			return ARBITRUM_RINKEBY_GATEWAY_ADDRESS;
+
+		default:
+			throw Error(`no gateway address for this network ${chainId}`);
+	}
+};
+
+export const getDEVAddressByChainId = (chainId: number): string => {
+	switch (chainId) {
+		case 1:
+			return L1_MAINNET_DEV_ADDRESS;
+
+		case 4:
+			return L1_RINKEBY_DEV_ADDRESS;
+
+		case 42161:
+			return ARB_MAINNET_DEV_ADDRESS;
+
+		case 421611:
+			return ARB_RINKEBY_DEV_ADDRESS;
 
 		default:
 			throw Error(`no gateway address for this network ${chainId}`);
@@ -85,3 +109,23 @@ export function isAddress(value: any): string | false {
 		return false;
 	}
 }
+
+export const getRpcUrl = (network: Network): UndefinedOr<string> => {
+	switch (+network.chainID) {
+		// Mainnet
+		case 1:
+			return `https://mainnet.infura.io/v3/${process.env.REACT_APP_INFURA_KEY}`;
+
+		// Rinkeby
+		case 4:
+			return `https://rinkeby.infura.io/v3/${process.env.REACT_APP_INFURA_KEY}`;
+
+		// RinkArby
+		case 421611:
+			return 'https://rinkeby.arbitrum.io/rpc';
+
+		// Arbitrum Mainnet
+		case 42161:
+			return `https://arbitrum-mainnet.infura.io/v3/${process.env.REACT_APP_INFURA_KEY}`;
+	}
+};
