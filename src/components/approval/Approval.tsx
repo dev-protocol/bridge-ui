@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { UndefinedOr } from '@devprotocol/util-ts';
 import { ethers } from 'ethers';
-import { getAvailableNetworkByChainId, getGatewayAddressByChainId } from '../../utils/utils';
+// import { getAvailableNetworkByChainId, getGatewayAddressByChainId } from '../../utils/utils';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
 import { AllowanceContext } from '../../context/allowanceContext';
 
@@ -9,12 +9,18 @@ type ApprovalParams = {
 	allowanceUpdated(): void;
 	sourceNetwork: UndefinedOr<ethers.providers.Network>;
 	onError(message: string): void;
+	tokenAddress: string;
+	spenderAddress: string;
 };
 
-const Approval: React.FC<ApprovalParams> = ({ sourceNetwork, onError, allowanceUpdated }) => {
+const Approval: React.FC<ApprovalParams> = ({
+	// sourceNetwork,
+	onError,
+	allowanceUpdated,
+	tokenAddress,
+	spenderAddress
+}) => {
 	const [modalLaunched, setModalLaunched] = useState(false);
-	const [gatewayAddress, setGatewayAddress] = useState('');
-	const [sourceTokenAddress, setSourceTokenAddress] = useState('');
 	const web3Context = useWeb3Provider();
 	const { approve, setLoading, loading } = useContext(AllowanceContext);
 
@@ -24,8 +30,8 @@ const Approval: React.FC<ApprovalParams> = ({ sourceNetwork, onError, allowanceU
 		if (currentProvider) {
 			try {
 				const success = await approve({
-					gatewayAddress,
-					tokenAddress: sourceTokenAddress,
+					spenderAddress,
+					tokenAddress,
 					provider: currentProvider
 				});
 				if (success) {
@@ -42,15 +48,15 @@ const Approval: React.FC<ApprovalParams> = ({ sourceNetwork, onError, allowanceU
 		}
 	};
 
-	useEffect(() => {
-		if (sourceNetwork) {
-			setGatewayAddress(getGatewayAddressByChainId(sourceNetwork.chainId));
-			const validSourceNetwork = getAvailableNetworkByChainId(sourceNetwork.chainId);
-			if (validSourceNetwork) {
-				setSourceTokenAddress(validSourceNetwork.tokenAddress);
-			}
-		}
-	}, [sourceNetwork]);
+	// useEffect(() => {
+	// 	if (sourceNetwork) {
+	// 		setGatewayAddress(getGatewayAddressByChainId(sourceNetwork.chainId));
+	// 		const validSourceNetwork = getAvailableNetworkByChainId(sourceNetwork.chainId);
+	// 		if (validSourceNetwork) {
+	// 			setSourceTokenAddress(validSourceNetwork.tokenAddress);
+	// 		}
+	// 	}
+	// }, [sourceNetwork]);
 
 	const launchModal = (e: React.FormEvent) => {
 		e.preventDefault();

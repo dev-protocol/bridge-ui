@@ -10,11 +10,14 @@ import { useWeb3ProviderContext, WebProviderContext } from './context/web3Provid
 import { AllowanceProvider } from './context/allowanceContext';
 import { BridgeProvider } from './context/bridgeContext';
 import TransactionsTable from './components/transactions-table/TransactionsTable';
+import { BrowserRouter as Router, Switch, Route, Link, Redirect } from 'react-router-dom';
+import Wrap from './components/wrap/Wrap';
 
 const App: React.FC = () => {
 	const web3ProviderContext = useWeb3ProviderContext();
 	const [currentChainId, setCurrentChainId] = useState<number | null>(null);
 	const [devBalance, setDevBalance] = useState<BigNumber>();
+	const [wDevBalance, setWDevBalance] = useState<BigNumber>();
 
 	const updateChain = (chainId: number) => {
 		setCurrentChainId(+chainId);
@@ -28,10 +31,13 @@ const App: React.FC = () => {
 				const chainId = await network?.chainId;
 				const availableNetwork = getAvailableNetworkByChainId(chainId);
 				if (availableNetwork) {
-					const contract = new Contract(availableNetwork.tokenAddress, erc20ABI, provider);
 					const address = await provider.getSigner().getAddress();
-					const balance: BigNumber = await contract.balanceOf(address);
-					setDevBalance(balance);
+					const devContract = new Contract(availableNetwork.tokenAddress, erc20ABI, provider);
+					const arbWrapperContract = new Contract(availableNetwork.bridgeTokenAddress, erc20ABI, provider);
+					const devBalance: BigNumber = await devContract.balanceOf(address);
+					const wDevBalance = await arbWrapperContract.balanceOf(address);
+					setDevBalance(devBalance);
+					setWDevBalance(wDevBalance);
 				}
 			}
 		};
@@ -50,24 +56,54 @@ const App: React.FC = () => {
 					</h1>
 					<div className="flex flex-col items-end">
 						<ConnectButton onChainChanged={updateChain} />
-						{devBalance && (
-							<span className="text-white">
-								Balance: {ethers.utils.formatUnits(devBalance?.toString(), 18).toString()} DEV
-							</span>
+						{devBalance && wDevBalance && (
+							<div className="text-white">
+								<span>DEV: {ethers.utils.formatUnits(devBalance?.toString(), 18).toString()}</span>
+								<br />
+								<span>Wrapped DEV: {ethers.utils.formatUnits(wDevBalance?.toString(), 18).toString()}</span>
+							</div>
 						)}
 					</div>
 				</header>
 				<main>
 					<BridgeProvider provider={web3ProviderContext?.web3Provider}>
-						<AllowanceProvider>
-							<div className="max-w-sm bg-white mx-auto my-12 p-8 rounded">
-								<div className="pt-4">
-									<DepositForm currentChain={currentChainId} devBalance={devBalance} />
-								</div>
-							</div>
+						<div className="max-w-sm bg-white mx-auto my-12 p-8 pt-2 rounded">
+							<div className="pt-4">
+								<Router>
+									<nav className="pb-4">
+										<ul className="flex">
+											<li className="w-1/2 text-center">
+												<Link to="/wrap">Wrap</Link>
+											</li>
+											<li className="w-1/2 text-center">
+												<Link to="/unwrap">Unwrap</Link>
+											</li>
+											<li className="w-1/2 text-center">
+												<Link to="/bridge">L2 Bridge</Link>
+											</li>
+										</ul>
+									</nav>
 
-							<TransactionsTable />
-						</AllowanceProvider>
+									<Switch>
+										<Redirect exact from="/" to="/wrap" />
+										<Route path="/wrap">
+											<AllowanceProvider>
+												<Wrap devBalance={devBalance ?? BigNumber.from(0)} currentChain={currentChainId} />
+											</AllowanceProvider>
+										</Route>
+										<Route path="/unwrap">
+											<span>Unwrap</span>
+										</Route>
+										<Route path="/bridge">
+											<AllowanceProvider>
+												<DepositForm currentChain={currentChainId} devBalance={devBalance} />
+											</AllowanceProvider>
+										</Route>
+									</Switch>
+								</Router>
+							</div>
+						</div>
+						<TransactionsTable />
 					</BridgeProvider>
 				</main>
 			</div>

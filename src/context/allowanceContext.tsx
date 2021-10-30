@@ -7,7 +7,7 @@ import { getAvailableNetworkByChainId, getGatewayAddressByChainId } from '../uti
 interface IApproveParams {
 	tokenAddress: string;
 	provider: ethers.providers.Web3Provider;
-	gatewayAddress: string;
+	spenderAddress: string;
 	amount?: ethers.BigNumber;
 }
 
@@ -61,7 +61,7 @@ export const AllowanceProvider: React.FC = ({ children }) => {
 		async ({
 			tokenAddress,
 			provider,
-			gatewayAddress,
+			spenderAddress,
 			amount = ethers.constants.MaxUint256
 		}: IApproveParams): Promise<boolean> => {
 			setLoading(true);
@@ -69,14 +69,14 @@ export const AllowanceProvider: React.FC = ({ children }) => {
 			const userAddress = await signer.getAddress();
 			const gasPrice = await provider.getGasPrice();
 			const contract = new ethers.Contract(tokenAddress, erc20ABI, provider).connect(signer);
-			const approval = await contract.approve(gatewayAddress, amount, {
+			const approval = await contract.approve(spenderAddress, amount, {
 				from: userAddress,
 				gasPrice,
 				gasLimit: '65000'
 			});
 
 			contract.on('Approval', async (_owner, _spender, _value) => {
-				await fetchAllowance({ provider, tokenAddress, spenderAddress: gatewayAddress });
+				await fetchAllowance({ provider, tokenAddress, spenderAddress: spenderAddress });
 
 				setLoading(false);
 			});
@@ -89,13 +89,13 @@ export const AllowanceProvider: React.FC = ({ children }) => {
 	// for testing
 	const revoke = useCallback(
 		async ({ network, provider }: IRevokeParams): Promise<void> => {
-			let gatewayAddress = '';
+			let spenderAddress = '';
 			let tokenAddress = '';
 
 			if (network) {
 				const _validSourceNetwork = getAvailableNetworkByChainId(network.chainId);
 				if (_validSourceNetwork) {
-					gatewayAddress = getGatewayAddressByChainId(_validSourceNetwork.chainId);
+					spenderAddress = getGatewayAddressByChainId(_validSourceNetwork.chainId);
 					tokenAddress = _validSourceNetwork?.tokenAddress;
 				} else {
 					return;
@@ -106,7 +106,7 @@ export const AllowanceProvider: React.FC = ({ children }) => {
 
 			if (provider) {
 				await approve({
-					gatewayAddress,
+					spenderAddress,
 					tokenAddress,
 					provider: provider,
 					amount: ethers.BigNumber.from(0)

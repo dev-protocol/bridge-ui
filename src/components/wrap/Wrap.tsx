@@ -1,38 +1,38 @@
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
-import {
-	getAvailableNetworkByChainId,
-	getGatewayAddressByChainId,
-	getTargetNetworkOptions,
-	isValidChain
-} from '../../utils/utils';
 import { BigNumber } from '@ethersproject/bignumber';
 import { ethers } from 'ethers';
+import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { UndefinedOr } from '@devprotocol/util-ts';
-import { AvailableNetwork } from '../../types/types';
-import { useWeb3Provider } from '../../context/web3ProviderContext';
-import { AllowanceContext } from '../../context/allowanceContext';
 import Approval from '../approval/Approval';
-import Convert from './Convert';
-import { RINKEBY } from '../../constants/constants';
+import { useWeb3Provider } from '../../context/web3ProviderContext';
+import { getAvailableNetworkByChainId, isValidChain } from '../../utils/utils';
+import { AllowanceContext } from '../../context/allowanceContext';
+import ConfirmWrapModal from './ConfirmWrapModal';
+import { AvailableNetwork } from '../../types/types';
 
-type DepositParams = {
+type WrapParams = {
+	devBalance: BigNumber;
 	currentChain: number | null;
-	devBalance: UndefinedOr<BigNumber>;
 };
 
-const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
+const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 	const [amount, setAmount] = useState<BigNumber>();
 	const [formValid, setFormValid] = useState(false);
-	const [isConnected, setIsConnected] = useState(false);
-	const [isValidNetwork, setIsValidNetwork] = useState(false);
-	// const [network, setNetwork] = useState<UndefinedOr<ethers.providers.Network>>();
 	const [network, setNetwork] = useState<UndefinedOr<AvailableNetwork>>();
-	const [selectedTargetChain, setSelectedTargetChain] = useState(RINKEBY);
-	const [targetChainOptions, setTargetChainOptions] = useState<AvailableNetwork[]>([]);
+	const [isConnected, setIsConnected] = useState(false);
 	const web3Context = useWeb3Provider();
+	const [isValidNetwork, setIsValidNetwork] = useState(false);
 	const { allowance, fetchAllowance } = useContext(AllowanceContext);
+	const [displayModal, setDisplayModal] = useState(false);
+
+	const getNetwork = useCallback(async (): Promise<void> => {
+		const currentProvider = web3Context?.web3Provider;
+		if (currentProvider) {
+			const network = getAvailableNetworkByChainId(await (await currentProvider.getNetwork()).chainId);
+			setNetwork(network);
+		}
+	}, [web3Context?.web3Provider]);
 
 	const updateAmount = (val: string): void => {
 		// empty string
@@ -52,33 +52,11 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 		}
 	};
 
-	const getNetwork = useCallback(async (): Promise<void> => {
-		const currentProvider = web3Context?.web3Provider;
-		if (currentProvider) {
-			const network = getAvailableNetworkByChainId(await (await currentProvider.getNetwork()).chainId);
-			if (!network) {
-				return;
-			}
-
-			setNetwork(network);
-
-			const validSourceNetwork = getAvailableNetworkByChainId(network.chainId);
-			if (validSourceNetwork) {
-				const options = getTargetNetworkOptions({
-					layer: validSourceNetwork.layer === 1 ? 2 : 1, // send to different layer
-					isTestnet: validSourceNetwork.isTestnet
-				});
-				setTargetChainOptions(options);
-
-				// update target network select to first option
-				if (options.length > 0) {
-					setSelectedTargetChain(options[0]);
-				}
-			} else {
-				setTargetChainOptions([]);
-			}
-		}
-	}, [web3Context?.web3Provider]);
+	const setMax = (e: React.FormEvent) => {
+		e.preventDefault();
+		const amount = devBalance ? ethers.utils.formatUnits(devBalance?.toString(), 18) : '0';
+		updateAmount(amount);
+	};
 
 	useEffect(() => {
 		setIsValidNetwork(currentChain ? isValidChain(currentChain) : false);
@@ -86,16 +64,11 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 		const getAllowance = async () => {
 			const currentProvider = web3Context?.web3Provider;
 			if (currentProvider && network) {
-				const sourceNetwork = getAvailableNetworkByChainId(network.chainId);
-				const gatewayAddress = getGatewayAddressByChainId(network.chainId);
-				if (sourceNetwork) {
-					await fetchAllowance({
-						provider: currentProvider,
-						tokenAddress: sourceNetwork?.tokenAddress,
-						spenderAddress: gatewayAddress
-					});
-					// setAllowance(_allowance);
-				}
+				await fetchAllowance({
+					provider: currentProvider,
+					tokenAddress: network?.tokenAddress,
+					spenderAddress: network.bridgeTokenAddress
+				});
 			}
 		};
 		getAllowance();
@@ -117,17 +90,6 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 
 		getProvider();
 	}, [web3Context, getNetwork]);
-
-	const setMax = (e: React.FormEvent) => {
-		e.preventDefault();
-		const amount = devBalance ? ethers.utils.formatUnits(devBalance?.toString(), 18) : '0';
-		updateAmount(amount);
-	};
-
-	// this is for testing allowance to reset
-	// const onRevoke = async () => {
-	// 	allowanceContext?.revoke({ network, provider: web3Context?.web3Provider });
-	// };
 
 	return (
 		<div>
@@ -158,20 +120,28 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 						{!formValid && <span className="text-xs text-red-600">*Please enter a valid amount of DEV to send</span>}
 					</div>
 				</div>
-				<div className="flex flex-col mb-4">
+				{/* <div className="flex flex-col mb-4">
 					<span className="block text-gray-700 text-sm font-bold flex-grow pr-2">From</span>
 
 					<span className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-full capitalize bg-gray-100">
 						{network && network.chainId !== 1 && <>{network.name}</>}
 						{(!network || (network && network.chainId === 1)) && <>Mainnet</>}
 					</span>
-				</div>
+				</div> */}
 				<div className="text-center">
 					<FontAwesomeIcon icon={faArrowDown} />
 				</div>
-				<span className="block text-gray-700 text-sm font-bold flex-grow pr-2">To</span>
+				<div className="flex flex-col mb-4">
+					<span className="block text-gray-700 text-sm font-bold flex-grow pr-2">To</span>
 
-				{targetChainOptions.length > 0 && (
+					<div className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-full capitalize bg-gray-100">
+						{network && network.chainId !== 1 && <> {network.name} </>}
+						{(!network || (network && network.chainId === 1)) && <> Mainnet </>}
+						Wrapped DEV
+					</div>
+				</div>
+
+				{/* {targetChainOptions.length > 0 && (
 					<select
 						onChange={e => setSelectedTargetChain(JSON.parse(e.target.value) as AvailableNetwork)}
 						className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-8">
@@ -181,36 +151,33 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 							</option>
 						))}
 					</select>
-				)}
+				)} */}
 
 				{/** User not connected, only for UI purposes */}
-				{targetChainOptions.length <= 0 && (
+				{/* {targetChainOptions.length <= 0 && (
 					<select className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-8">
 						<option>Arbitrum</option>
 					</select>
-				)}
+				)} */}
 
 				{/** VALID -> Connected to compatible chain */}
-				{isConnected &&
-					network &&
-					isValidNetwork &&
-					((selectedTargetChain.layer == 2 && allowance.gt(0)) || selectedTargetChain.layer == 1) && (
-						<Convert
-							formValid={formValid}
-							amount={amount}
-							network={network}
-							selectedTargetChain={selectedTargetChain}
-						/>
-					)}
+				{isConnected && network && allowance.gt(0) && (
+					// <Convert formValid={formValid} amount={amount} network={network} selectedTargetChain={selectedTargetChain} />
+					<button onClick={_ => setDisplayModal(true)}>Wrap</button>
+				)}
+
+				{displayModal && amount && (
+					<ConfirmWrapModal setDisplayModal={setDisplayModal} amount={amount}></ConfirmWrapModal>
+				)}
 
 				{/** Approval Required */}
-				{allowance.isZero() && isConnected && network && selectedTargetChain.layer == 2 && (
+				{allowance.isZero() && isConnected && network && (
 					<Approval
 						allowanceUpdated={() => console.log('allowance updated')}
 						onError={e => console.log('an approval error occurred: ', e)}
 						sourceNetwork={network}
 						tokenAddress={network?.tokenAddress}
-						spenderAddress={network?.bridgeTokenAddress}
+						spenderAddress={network.bridgeTokenAddress}
 					/>
 				)}
 
@@ -240,4 +207,4 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 	);
 };
 
-export default DepositForm;
+export default Wrap;
