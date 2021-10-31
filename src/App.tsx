@@ -99,7 +99,7 @@ const App: React.FC = () => {
 										</Route>
 										<Route path="/bridge">
 											<AllowanceProvider>
-												<DepositForm currentChain={currentChainId} devBalance={devBalance} />
+												<DepositForm currentChain={currentChainId} wDevBalance={wDevBalance} />
 											</AllowanceProvider>
 										</Route>
 									</Switch>

@@ -19,10 +19,10 @@ import { RINKEBY } from '../../constants/constants';
 
 type DepositParams = {
 	currentChain: number | null;
-	devBalance: UndefinedOr<BigNumber>;
+	wDevBalance: UndefinedOr<BigNumber>;
 };
 
-const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
+const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => {
 	const [amount, setAmount] = useState<BigNumber>();
 	const [formValid, setFormValid] = useState(false);
 	const [isConnected, setIsConnected] = useState(false);
@@ -46,7 +46,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
 			const newAmount = BigNumber.from(+val);
 			setAmount(newAmount);
-			setFormValid(devBalance && devBalance?.gte(newAmount) && +val > 0 ? true : false);
+			setFormValid(wDevBalance && wDevBalance?.gte(newAmount) && +val > 0 ? true : false);
 		} else {
 			setFormValid(false);
 		}
@@ -120,7 +120,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, devBalance }) => {
 
 	const setMax = (e: React.FormEvent) => {
 		e.preventDefault();
-		const amount = devBalance ? ethers.utils.formatUnits(devBalance?.toString(), 18) : '0';
+		const amount = wDevBalance ? ethers.utils.formatUnits(wDevBalance?.toString(), 18) : '0';
 		updateAmount(amount);
 	};
 

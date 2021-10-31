@@ -39,10 +39,10 @@ const Convert: React.FC<ConvertParams> = ({ formValid, amount, network, selected
 		try {
 			if (currentNetwork.isArbitrum) {
 				// Withdraw
-				await bridgeContext.withdraw(amount);
+				await bridgeContext.withdraw(selectedTargetChain)(amount);
 			} else {
 				// Deposit
-				await bridgeContext.deposit(amount);
+				await bridgeContext.deposit(selectedTargetChain)(amount);
 			}
 		} catch (error) {
 			setLoading(false);
