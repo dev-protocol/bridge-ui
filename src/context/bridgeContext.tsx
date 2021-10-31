@@ -4,8 +4,8 @@ import { Network } from 'arb-ts/dist/lib/networks';
 import { ethers } from 'arb-ts/node_modules/ethers';
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import { useInterval } from '../hooks/useInterval';
-import { AvailableNetwork } from '../types/types';
-import { getRpcUrl } from '../utils/utils';
+// import { AvailableNetwork } from '../types/types';
+import { getL1WrapperAddressByChainId, getRpcUrl } from '../utils/utils';
 
 interface IBridgeProviderParams {
 	children: React.ReactNode;
@@ -23,8 +23,8 @@ interface IBridgeContext {
 	l1PendingTxs: IPendingItem[];
 	l2PendingTxs: IPendingItem[];
 	txReceipts: IReceiptItem[];
-	deposit(selectedTargetChain: AvailableNetwork): (amount: ethers.BigNumber) => Promise<void>;
-	withdraw(selectedTargetChain: AvailableNetwork): (amount: ethers.BigNumber) => Promise<void>;
+	deposit(amount: ethers.BigNumber): Promise<void>;
+	withdraw(amount: ethers.BigNumber): Promise<void>;
 }
 
 export enum ConvertDirection {
@@ -50,8 +50,8 @@ const bridgeContext: IBridgeContext = {
 	l1PendingTxs: [],
 	l2PendingTxs: [],
 	txReceipts: [],
-	deposit: () => async _ => {},
-	withdraw: () => async _ => {}
+	deposit: async _ => {},
+	withdraw: async _ => {}
 };
 
 export const BridgeContext = createContext(bridgeContext);
@@ -132,6 +132,20 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 		}
 	};
 
+	const _getL1TokenAddress = async (): Promise<UndefinedOr<string>> => {
+		if (!provider) {
+			return;
+		}
+
+		const network = networks[(await provider.getNetwork()).chainId];
+		if (!network) {
+			console.error('invalid network');
+			return;
+		}
+
+		return getL1WrapperAddressByChainId(+network.chainID);
+	};
+
 	const createL1Bridge = useCallback(
 		async ({ provider, network, partnerNetwork }: ICreateBridgeParams): Promise<void> => {
 			const ethProvider = provider;
@@ -171,7 +185,7 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 		[setBridge]
 	);
 
-	const deposit = (selectedTargetChain: AvailableNetwork) => async (amount: ethers.BigNumber) => {
+	const deposit = async (amount: ethers.BigNumber) => {
 		if (!bridge) {
 			console.error('Bridge not initilized');
 			return;
@@ -179,7 +193,13 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 
 		const parsedAmount = ethers.utils.parseUnits(amount.toString());
 
-		const res = await bridge.deposit(selectedTargetChain.bridgeTokenAddress, parsedAmount);
+		const l1WrapperAddress = await _getL1TokenAddress();
+		if (!l1WrapperAddress) {
+			console.error('error fetching l1ChainId');
+			return;
+		}
+
+		const res = await bridge.deposit(l1WrapperAddress, parsedAmount);
 
 		setL1PendingTxHashes([
 			...l1PendingTxs,
@@ -191,7 +211,7 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 		]);
 	};
 
-	const withdraw = (selectedTargetChain: AvailableNetwork) => async (amount: ethers.BigNumber) => {
+	const withdraw = async (amount: ethers.BigNumber) => {
 		if (!bridge) {
 			console.error('Bridge not initilized');
 			return;
@@ -199,7 +219,13 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 
 		const parsedAmount = ethers.utils.parseUnits(amount.toString());
 
-		const withdrawTx = await bridge.withdrawERC20(selectedTargetChain.bridgeTokenAddress, parsedAmount);
+		const l1WrapperAddress = await _getL1TokenAddress();
+		if (!l1WrapperAddress) {
+			console.error('error fetching l1ChainId');
+			return;
+		}
+
+		const withdrawTx = await bridge.withdrawERC20(l1WrapperAddress, parsedAmount);
 
 		setL2PendingTxHashes([
 			...l1PendingTxs,

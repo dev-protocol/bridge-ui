@@ -5,7 +5,7 @@ import ConnectButton from './components/ConnectButton';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Contract } from '@ethersproject/contracts';
 import erc20ABI from './constants/erc20.abi.json';
-import { getAvailableNetworkByChainId } from './utils/utils';
+import { getAvailableL1NetworkByChainId, getAvailableNetworkByChainId } from './utils/utils';
 import { useWeb3ProviderContext, WebProviderContext } from './context/web3ProviderContext';
 import { AllowanceProvider } from './context/allowanceContext';
 import { WrappableProvider } from './context/wrappableContext';
@@ -30,14 +30,22 @@ const App: React.FC = () => {
 				const provider = web3ProviderContext?.web3Provider;
 				const network = await provider.getNetwork();
 				const chainId = await network?.chainId;
+				const address = await provider.getSigner().getAddress();
+
 				const availableNetwork = getAvailableNetworkByChainId(chainId);
+
+				// is L1 or L2 compliant network
 				if (availableNetwork) {
-					const address = await provider.getSigner().getAddress();
 					const devContract = new Contract(availableNetwork.tokenAddress, erc20ABI, provider);
-					const arbWrapperContract = new Contract(availableNetwork.bridgeTokenAddress, erc20ABI, provider);
 					const devBalance: BigNumber = await devContract.balanceOf(address);
-					const wDevBalance = await arbWrapperContract.balanceOf(address);
 					setDevBalance(devBalance);
+				}
+
+				// is L1 network
+				const l1AvailableNetwork = getAvailableL1NetworkByChainId(chainId);
+				if (l1AvailableNetwork) {
+					const arbWrapperContract = new Contract(l1AvailableNetwork.wrapperTokenAddress, erc20ABI, provider);
+					const wDevBalance = await arbWrapperContract.balanceOf(address);
 					setWDevBalance(wDevBalance);
 				}
 			}

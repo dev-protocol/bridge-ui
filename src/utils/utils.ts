@@ -3,16 +3,22 @@ import { ethers } from 'ethers';
 import {
 	ARBITRUM_MAINNET_GATEWAY_ADDRESS,
 	ARBITRUM_RINKEBY_GATEWAY_ADDRESS,
+	ARB_DEV_WRAPPER_MAINNET,
+	ARB_DEV_WRAPPER_RINKEBY,
 	AvailableNetworks,
+	L1Networks,
 	MAINNET_GATEWAY_ADDRESS,
 	RINKEBY_GATEWAY_ADDRESS
 } from '../constants/constants';
-import { AvailableNetwork } from '../types/types';
+import { AvailableNetwork, L1Network } from '../types/types';
 import { getAddress } from '@ethersproject/address';
 import { Network } from 'arb-ts/dist/lib/networks';
 
 export const getAvailableNetworkByChainId = (id: number): UndefinedOr<AvailableNetwork> =>
 	AvailableNetworks.find(network => network.chainId === id);
+
+export const getAvailableL1NetworkByChainId = (id: number): UndefinedOr<L1Network> =>
+	L1Networks.find(network => network.chainId === id);
 
 /**
  * Check by chainId if you can interact with it as a bridge
@@ -23,6 +29,8 @@ export const isValidChain = (chainId: number): boolean => {
 	const validNetwork = AvailableNetworks.filter(network => network.chainId === chainId);
 	return validNetwork.length > 0;
 };
+
+export const isValidL1Chain = (chainId: number): boolean => chainId === 1 || chainId === 4;
 
 /**
  * Pass in the source network to get the bridge contract gateway address
@@ -104,5 +112,20 @@ export const getRpcUrl = (network: Network): UndefinedOr<string> => {
 		// Arbitrum Mainnet
 		case 42161:
 			return `https://arbitrum-mainnet.infura.io/v3/${process.env.REACT_APP_INFURA_KEY}`;
+	}
+};
+
+export const getL1WrapperAddressByChainId = (chainId: number): string => {
+	switch (chainId) {
+		case 1:
+		case 42161:
+			return ARB_DEV_WRAPPER_MAINNET;
+
+		case 4:
+		case 421611:
+			return ARB_DEV_WRAPPER_RINKEBY;
+
+		default:
+			throw Error(`no gateway address for this network ${chainId}`);
 	}
 };

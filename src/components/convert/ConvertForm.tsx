@@ -27,10 +27,10 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 	const [formValid, setFormValid] = useState(false);
 	const [isConnected, setIsConnected] = useState(false);
 	const [isValidNetwork, setIsValidNetwork] = useState(false);
-	// const [network, setNetwork] = useState<UndefinedOr<ethers.providers.Network>>();
 	const [network, setNetwork] = useState<UndefinedOr<AvailableNetwork>>();
-	const [selectedTargetChain, setSelectedTargetChain] = useState(RINKEBY);
+	const [selectedTargetChain, setSelectedTargetChain] = useState<AvailableNetwork>(RINKEBY);
 	const [targetChainOptions, setTargetChainOptions] = useState<AvailableNetwork[]>([]);
+	const [gatewayAddress, setGatewayAddress] = useState<UndefinedOr<string>>();
 	const web3Context = useWeb3Provider();
 	const { allowance, fetchAllowance } = useContext(AllowanceContext);
 
@@ -88,6 +88,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 			if (currentProvider && network) {
 				const sourceNetwork = getAvailableNetworkByChainId(network.chainId);
 				const gatewayAddress = getGatewayAddressByChainId(network.chainId);
+				setGatewayAddress(gatewayAddress);
 				if (sourceNetwork) {
 					await fetchAllowance({
 						provider: currentProvider,
@@ -204,13 +205,13 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 					)}
 
 				{/** Approval Required */}
-				{allowance.isZero() && isConnected && network && selectedTargetChain.layer == 2 && (
+				{allowance.isZero() && isConnected && network && gatewayAddress && selectedTargetChain.layer == 2 && (
 					<Approval
 						allowanceUpdated={() => console.log('allowance updated')}
 						onError={e => console.log('an approval error occurred: ', e)}
 						sourceNetwork={network}
 						tokenAddress={network?.tokenAddress}
-						spenderAddress={network?.bridgeTokenAddress}
+						spenderAddress={gatewayAddress}
 					/>
 				)}
 
