@@ -42,8 +42,7 @@ export const WrappableProvider: React.FC = ({ children }) => {
 			const contract = new ethers.Contract(tokenAddress, wrappableABI, provider).connect(signer);
 			const tx = await contract.wrap(amount, {
 				from: userAddress,
-				gasPrice,
-				gasLimit: '65000'
+				gasPrice
 			});
 
 			tx.wait().then(() => setLoading(false));
@@ -62,8 +61,7 @@ export const WrappableProvider: React.FC = ({ children }) => {
 			const contract = new ethers.Contract(tokenAddress, wrappableABI, provider).connect(signer);
 			const tx = await contract.unwrap(amount, {
 				from: userAddress,
-				gasPrice,
-				gasLimit: '65000'
+				gasPrice
 			});
 
 			tx.wait().then(() => setLoading(false));

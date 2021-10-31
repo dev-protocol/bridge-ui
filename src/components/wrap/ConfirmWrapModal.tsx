@@ -1,24 +1,48 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
+import { utils } from 'ethers';
 import { BigNumber } from '@ethersproject/bignumber';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { AllowanceContext } from '../../context/allowanceContext';
+import { WrappableContext } from '../../context/wrappableContext';
+import { useWeb3Provider } from '../../context/web3ProviderContext';
 
 type ConfirmWrapModalParams = {
 	// currentChain: number | null;
 	// devBalance: UndefinedOr<BigNumber>;
 	amount: BigNumber;
 	setDisplayModal: React.Dispatch<React.SetStateAction<boolean>>;
+	tokenAddress: string;
+	onError(message: string): void;
 };
 
-const ConfirmWrapModal: React.FC<ConfirmWrapModalParams> = ({ amount, setDisplayModal }) => {
-	const [loading, setLoading] = useState(false);
+const ConfirmWrapModal: React.FC<ConfirmWrapModalParams> = ({ amount, tokenAddress, setDisplayModal, onError }) => {
 	const { allowance } = useContext(AllowanceContext);
+	const { wrap, loading, setLoading } = useContext(WrappableContext);
+	const web3Context = useWeb3Provider();
 
-	const submitWrap = async () => {
-		setLoading(true);
-
-		setLoading(false);
+	const submitWrap = async (e: React.FormEvent) => {
+		e.preventDefault();
+		const currentProvider = web3Context?.web3Provider;
+		const _amount = utils.parseEther(amount.toString());
+		if (currentProvider) {
+			try {
+				const success = await wrap({
+					amount: _amount,
+					tokenAddress,
+					provider: currentProvider
+				});
+				if (success) {
+					setDisplayModal(false);
+				} else {
+					onError('An error occurred.');
+					setLoading(false);
+				}
+			} catch (error: any) {
+				setLoading(false);
+				onError(error.message);
+			}
+		}
 	};
 
 	return (
@@ -54,7 +78,7 @@ const ConfirmWrapModal: React.FC<ConfirmWrapModalParams> = ({ amount, setDisplay
 										<button
 											className="bg-blue-600 text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150 w-28 flex justify-center"
 											type="button"
-											onClick={() => submitWrap()}>
+											onClick={submitWrap}>
 											{loading && (
 												<div className="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4"></div>
 											)}

@@ -163,11 +163,19 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 				{/** VALID -> Connected to compatible chain */}
 				{isConnected && network && allowance.gt(0) && (
 					// <Convert formValid={formValid} amount={amount} network={network} selectedTargetChain={selectedTargetChain} />
-					<button onClick={_ => setDisplayModal(true)}>Wrap</button>
+					<button
+						className="w-full bg-blue-600 text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150 w-28 flex justify-center"
+						onClick={_ => setDisplayModal(true)}>
+						Wrap
+					</button>
 				)}
 
-				{displayModal && amount && (
-					<ConfirmWrapModal setDisplayModal={setDisplayModal} amount={amount}></ConfirmWrapModal>
+				{displayModal && amount && network && (
+					<ConfirmWrapModal
+						setDisplayModal={setDisplayModal}
+						amount={amount}
+						tokenAddress={network?.bridgeTokenAddress}
+						onError={e => console.log('a wrap error occurred: ', e)}></ConfirmWrapModal>
 				)}
 
 				{/** Approval Required */}
