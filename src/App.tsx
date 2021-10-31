@@ -8,6 +8,7 @@ import erc20ABI from './constants/erc20.abi.json';
 import { getAvailableNetworkByChainId } from './utils/utils';
 import { useWeb3ProviderContext, WebProviderContext } from './context/web3ProviderContext';
 import { AllowanceProvider } from './context/allowanceContext';
+import { WrappableProvider } from './context/wrappableContext';
 import { BridgeProvider } from './context/bridgeContext';
 import TransactionsTable from './components/transactions-table/TransactionsTable';
 import { BrowserRouter as Router, Switch, Route, Link, Redirect } from 'react-router-dom';
@@ -88,7 +89,9 @@ const App: React.FC = () => {
 										<Redirect exact from="/" to="/wrap" />
 										<Route path="/wrap">
 											<AllowanceProvider>
-												<Wrap devBalance={devBalance ?? BigNumber.from(0)} currentChain={currentChainId} />
+												<WrappableProvider>
+													<Wrap devBalance={devBalance ?? BigNumber.from(0)} currentChain={currentChainId} />
+												</WrappableProvider>
 											</AllowanceProvider>
 										</Route>
 										<Route path="/unwrap">
