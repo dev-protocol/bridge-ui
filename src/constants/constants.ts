@@ -13,7 +13,7 @@ export const L1_MAINNET_DEV_ADDRESS = '0x5caf454ba92e6f2c929df14667ee360ed9fd5b2
 export const L1_RINKEBY_DEV_ADDRESS = '0xa21cb351fc29acb7c3901270a5259bf5e68f11d8'; // TODO: this needs to be changed is Dummy DEV for testing
 export const ARB_MAINNET_DEV_ADDRESS = '';
 export const ARB_RINKEBY_DEV_ADDRESS = '0x53a8fc7d1663807eac3daafa81b5b3c81f028479'; // TODO: this needs to be changed is Dummy DEV for testing
-export const ARB_DEV_WRAPPER_RINKEBY = '0xe87f6cfD3B2e6DB1D82a3e3fd0Fc9D3bE193C196';
+export const ARB_DEV_WRAPPER_RINKEBY = '0xb970C9AB82C9b5110d734bA413AA3527ddd9eB6F';
 export const ARB_DEV_WRAPPER_MAINNET = '';
 
 // TODO - separate out available BRIDGE networks and available WRAP (only L1) networks
