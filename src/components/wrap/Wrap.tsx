@@ -6,10 +6,10 @@ import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { UndefinedOr } from '@devprotocol/util-ts';
 import Approval from '../approval/Approval';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
-import { getAvailableNetworkByChainId, isValidChain } from '../../utils/utils';
+import { getAvailableL1NetworkByChainId, isValidChain, isValidL1Chain } from '../../utils/utils';
 import { AllowanceContext } from '../../context/allowanceContext';
 import ConfirmWrapModal from './ConfirmWrapModal';
-import { AvailableNetwork } from '../../types/types';
+import { L1Network } from '../../types/types';
 
 type WrapParams = {
 	devBalance: BigNumber;
@@ -19,7 +19,7 @@ type WrapParams = {
 const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 	const [amount, setAmount] = useState<BigNumber>();
 	const [formValid, setFormValid] = useState(false);
-	const [network, setNetwork] = useState<UndefinedOr<AvailableNetwork>>();
+	const [network, setNetwork] = useState<UndefinedOr<L1Network>>();
 	const [isConnected, setIsConnected] = useState(false);
 	const web3Context = useWeb3Provider();
 	const [isValidNetwork, setIsValidNetwork] = useState(false);
@@ -29,7 +29,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 	const getNetwork = useCallback(async (): Promise<void> => {
 		const currentProvider = web3Context?.web3Provider;
 		if (currentProvider) {
-			const network = getAvailableNetworkByChainId(await (await currentProvider.getNetwork()).chainId);
+			const network = getAvailableL1NetworkByChainId(await (await currentProvider.getNetwork()).chainId);
 			setNetwork(network);
 		}
 	}, [web3Context?.web3Provider]);
@@ -59,7 +59,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 	};
 
 	useEffect(() => {
-		setIsValidNetwork(currentChain ? isValidChain(currentChain) : false);
+		setIsValidNetwork(currentChain ? isValidL1Chain(currentChain) : false);
 		getNetwork();
 		const getAllowance = async () => {
 			const currentProvider = web3Context?.web3Provider;
@@ -67,7 +67,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 				await fetchAllowance({
 					provider: currentProvider,
 					tokenAddress: network?.tokenAddress,
-					spenderAddress: network.bridgeTokenAddress
+					spenderAddress: network.wrapperTokenAddress
 				});
 			}
 		};
@@ -120,14 +120,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 						{!formValid && <span className="text-xs text-red-600">*Please enter a valid amount of DEV to send</span>}
 					</div>
 				</div>
-				{/* <div className="flex flex-col mb-4">
-					<span className="block text-gray-700 text-sm font-bold flex-grow pr-2">From</span>
 
-					<span className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-full capitalize bg-gray-100">
-						{network && network.chainId !== 1 && <>{network.name}</>}
-						{(!network || (network && network.chainId === 1)) && <>Mainnet</>}
-					</span>
-				</div> */}
 				<div className="text-center">
 					<FontAwesomeIcon icon={faArrowDown} />
 				</div>
@@ -140,25 +133,6 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 						Wrapped DEV
 					</div>
 				</div>
-
-				{/* {targetChainOptions.length > 0 && (
-					<select
-						onChange={e => setSelectedTargetChain(JSON.parse(e.target.value) as AvailableNetwork)}
-						className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-8">
-						{targetChainOptions.map(network => (
-							<option key={network.chainId} value={JSON.stringify(network)}>
-								{network.name}
-							</option>
-						))}
-					</select>
-				)} */}
-
-				{/** User not connected, only for UI purposes */}
-				{/* {targetChainOptions.length <= 0 && (
-					<select className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-8">
-						<option>Arbitrum</option>
-					</select>
-				)} */}
 
 				{/** VALID -> Connected to compatible chain */}
 				{isConnected && network && allowance.gt(0) && (
@@ -174,7 +148,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 					<ConfirmWrapModal
 						setDisplayModal={setDisplayModal}
 						amount={amount}
-						tokenAddress={network?.bridgeTokenAddress}
+						tokenAddress={network?.wrapperTokenAddress}
 						onError={e => console.log('a wrap error occurred: ', e)}></ConfirmWrapModal>
 				)}
 
@@ -185,7 +159,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 						onError={e => console.log('an approval error occurred: ', e)}
 						sourceNetwork={network}
 						tokenAddress={network?.tokenAddress}
-						spenderAddress={network.bridgeTokenAddress}
+						spenderAddress={network.wrapperTokenAddress}
 					/>
 				)}
 

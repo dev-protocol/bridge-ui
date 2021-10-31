@@ -1,4 +1,4 @@
-import { AvailableNetwork } from '../types/types';
+import { AvailableNetwork, L1Network } from '../types/types';
 
 // !!! TODO these need to be updated to correct bridge contracts
 export const MAINNET_GATEWAY_ADDRESS = '';
@@ -18,41 +18,43 @@ export const ARB_DEV_WRAPPER_MAINNET = '';
 
 // TODO - separate out available BRIDGE networks and available WRAP (only L1) networks
 
-// export const ArbitrumMainnet: AvailableNetwork = {
-// 	name: 'Arbitrum Mainnet',
-// 	chainId: 42161,
-// 	layer: 2,
-// 	isTestnet: false,
-// 	tokenAddress: ''
-// };
+export const ArbitrumMainnet: AvailableNetwork = {
+	name: 'Arbitrum Mainnet',
+	chainId: 42161,
+	layer: 2,
+	isTestnet: false,
+	tokenAddress: ''
+};
 
-export const MAINNET = {
+export const MAINNET: L1Network = {
 	name: 'Mainnet',
 	chainId: 1,
 	layer: 1,
 	isTestnet: false,
 	tokenAddress: L1_MAINNET_DEV_ADDRESS,
-	bridgeTokenAddress: ARB_DEV_WRAPPER_MAINNET
+	wrapperTokenAddress: ARB_DEV_WRAPPER_MAINNET
 };
 
-export const RINKEBY = {
+export const RINKEBY: L1Network = {
 	name: 'Rinkeby',
 	chainId: 4,
 	layer: 1,
 	isTestnet: true,
 	tokenAddress: L1_RINKEBY_DEV_ADDRESS, // this is a dummy ERC20 DEV token used for testing
-	bridgeTokenAddress: ARB_DEV_WRAPPER_RINKEBY
+	wrapperTokenAddress: ARB_DEV_WRAPPER_RINKEBY
 };
+
+export const L1Networks = [MAINNET, RINKEBY];
 
 export const AvailableNetworks: AvailableNetwork[] = [
 	MAINNET,
-	RINKEBY
-	// ArbitrumMainnet,
-	// {
-	// 	name: 'Arbitrum Rinkeby',
-	// 	chainId: 421611,
-	// 	layer: 2,
-	// 	isTestnet: true,
-	// 	tokenAddress: ARB_RINKEBY_DEV_ADDRESS // testing
-	// }
+	RINKEBY,
+	ArbitrumMainnet,
+	{
+		name: 'Arbitrum Rinkeby',
+		chainId: 421611,
+		layer: 2,
+		isTestnet: true,
+		tokenAddress: ARB_RINKEBY_DEV_ADDRESS // testing
+	}
 ];

@@ -4,5 +4,8 @@ export type AvailableNetwork = {
 	layer: number;
 	isTestnet: boolean;
 	tokenAddress: string;
-	bridgeTokenAddress: string;
+};
+
+export type L1Network = AvailableNetwork & {
+	wrapperTokenAddress: string;
 };
