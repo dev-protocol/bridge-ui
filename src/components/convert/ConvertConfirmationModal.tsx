@@ -2,7 +2,7 @@ import { UndefinedOr } from '@devprotocol/util-ts';
 import { BigNumber } from '@ethersproject/bignumber';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ethers } from 'ethers';
+import { ethers, utils } from 'ethers';
 import React, { useContext, useEffect, useState } from 'react';
 import { AllowanceContext } from '../../context/allowanceContext';
 import { AvailableNetwork } from '../../types/types';
@@ -43,7 +43,7 @@ const ConvertConfirmationModal: React.FC<ConvertConfirmationModalParams> = ({
 						{validSourceNetwork && (
 							<div>
 								<div className="relative p-6 flex-auto font-semibold">
-									Converting <span className="text-bold">{amount ? amount.toString() : 0} DEV</span>
+									Converting <span className="text-bold">{amount ? utils.formatEther(amount) : 0} DEV</span>
 									<div>
 										<FontAwesomeIcon icon={faArrowDown} />
 									</div>

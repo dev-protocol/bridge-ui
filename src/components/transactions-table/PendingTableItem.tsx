@@ -1,5 +1,5 @@
 import { UndefinedOr } from '@devprotocol/util-ts';
-import { ethers } from 'ethers';
+import { utils } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import { ConvertDirection, IPendingItem } from '../../context/bridgeContext';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
@@ -112,7 +112,7 @@ const PendingTableItem: React.FC<PendingTableItemParams> = ({ item, layer }) => 
 					<FontAwesomeIcon icon={faExternalLinkAlt} />
 				</a>
 			</td>
-			<td>{ethers.utils.formatUnits(item.value.toString(), 18).toString()}</td>
+			<td>{utils.formatEther(item.value)}</td>
 		</tr>
 	);
 };
