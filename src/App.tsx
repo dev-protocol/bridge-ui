@@ -11,8 +11,9 @@ import { AllowanceProvider } from './context/allowanceContext';
 import { WrappableProvider } from './context/wrappableContext';
 import { BridgeProvider } from './context/bridgeContext';
 import TransactionsTable from './components/transactions-table/TransactionsTable';
-import { BrowserRouter as Router, Switch, Route, Link, Redirect } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
 import Wrap from './components/wrap/Wrap';
+import NavLinkItem from './components/NavLinkItem';
 
 const App: React.FC = () => {
 	const web3ProviderContext = useWeb3ProviderContext();
@@ -79,17 +80,11 @@ const App: React.FC = () => {
 						<div className="max-w-sm bg-white mx-auto my-12 p-8 pt-2 rounded">
 							<div className="pt-4">
 								<Router>
-									<nav className="pb-4">
+									<nav className="pb-8">
 										<ul className="flex">
-											<li className="w-1/2 text-center">
-												<Link to="/wrap">Wrap</Link>
-											</li>
-											<li className="w-1/2 text-center">
-												<Link to="/unwrap">Unwrap</Link>
-											</li>
-											<li className="w-1/2 text-center">
-												<Link to="/bridge">L2 Bridge</Link>
-											</li>
+											<NavLinkItem route="/wrap" routeName="Wrap" />
+											<NavLinkItem route="/unwrap" routeName="Unwrap" />
+											<NavLinkItem route="/bridge" routeName="L2 Bridge" />
 										</ul>
 									</nav>
 
