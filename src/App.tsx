@@ -14,6 +14,7 @@ import TransactionsTable from './components/transactions-table/TransactionsTable
 import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
 import Wrap from './components/wrap/Wrap';
 import MainContentContainer from './components/MainContentContainer';
+import Unwrap from './components/unwrap/Unwrap';
 
 const App: React.FC = () => {
 	const web3ProviderContext = useWeb3ProviderContext();
@@ -91,7 +92,7 @@ const App: React.FC = () => {
 								</Route>
 								<Route path="/unwrap">
 									<MainContentContainer>
-										<span>Unwrap</span>
+										<Unwrap />
 									</MainContentContainer>
 								</Route>
 								<Route path="/bridge">
