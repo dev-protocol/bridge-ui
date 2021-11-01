@@ -6,6 +6,7 @@ interface IWrapParams {
 	tokenAddress: string;
 	provider: ethers.providers.Web3Provider;
 	amount?: ethers.BigNumber;
+	txSuccess(): void;
 }
 
 interface IUnwrapParams {
@@ -34,7 +35,12 @@ export const WrappableProvider: React.FC = ({ children }) => {
 	const [loading, setLoading] = useState(false);
 
 	const wrap = useCallback(
-		async ({ tokenAddress, provider, amount = ethers.constants.MaxUint256 }: IWrapParams): Promise<boolean> => {
+		async ({
+			tokenAddress,
+			provider,
+			txSuccess,
+			amount = ethers.constants.MaxUint256
+		}: IWrapParams): Promise<boolean> => {
 			setLoading(true);
 			const signer = provider.getSigner();
 			const userAddress = await signer.getAddress();
@@ -45,7 +51,10 @@ export const WrappableProvider: React.FC = ({ children }) => {
 				gasPrice
 			});
 
-			tx.wait().then(() => setLoading(false));
+			tx.wait().then(() => {
+				setLoading(false);
+				txSuccess();
+			});
 
 			return tx;
 		},
@@ -53,7 +62,12 @@ export const WrappableProvider: React.FC = ({ children }) => {
 	);
 
 	const unwrap = useCallback(
-		async ({ tokenAddress, provider, amount = ethers.constants.MaxUint256 }: IWrapParams): Promise<boolean> => {
+		async ({
+			tokenAddress,
+			provider,
+			txSuccess,
+			amount = ethers.constants.MaxUint256
+		}: IWrapParams): Promise<boolean> => {
 			setLoading(true);
 			const signer = provider.getSigner();
 			const userAddress = await signer.getAddress();
@@ -64,7 +78,10 @@ export const WrappableProvider: React.FC = ({ children }) => {
 				gasPrice
 			});
 
-			tx.wait().then(() => setLoading(false));
+			tx.wait().then(() => {
+				setLoading(false);
+				txSuccess();
+			});
 
 			return tx;
 		},
