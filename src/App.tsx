@@ -13,7 +13,7 @@ import { BridgeProvider } from './context/bridgeContext';
 import TransactionsTable from './components/transactions-table/TransactionsTable';
 import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
 import Wrap from './components/wrap/Wrap';
-import NavLinkItem from './components/NavLinkItem';
+import MainContentContainer from './components/MainContentContainer';
 
 const App: React.FC = () => {
 	const web3ProviderContext = useWeb3ProviderContext();
@@ -77,39 +77,35 @@ const App: React.FC = () => {
 				</header>
 				<main>
 					<BridgeProvider provider={web3ProviderContext?.web3Provider}>
-						<div className="max-w-sm bg-white mx-auto my-12 p-8 pt-2 rounded">
-							<div className="pt-4">
-								<Router>
-									<nav className="pb-8">
-										<ul className="flex">
-											<NavLinkItem route="/wrap" routeName="Wrap" />
-											<NavLinkItem route="/unwrap" routeName="Unwrap" />
-											<NavLinkItem route="/bridge" routeName="L2 Bridge" />
-										</ul>
-									</nav>
-
-									<Switch>
-										<Redirect exact from="/" to="/wrap" />
-										<Route path="/wrap">
-											<AllowanceProvider>
-												<WrappableProvider>
-													<Wrap devBalance={devBalance ?? BigNumber.from(0)} currentChain={currentChainId} />
-												</WrappableProvider>
-											</AllowanceProvider>
-										</Route>
-										<Route path="/unwrap">
-											<span>Unwrap</span>
-										</Route>
-										<Route path="/bridge">
-											<AllowanceProvider>
-												<DepositForm currentChain={currentChainId} wDevBalance={wDevBalance} />
-											</AllowanceProvider>
-										</Route>
-									</Switch>
-								</Router>
-							</div>
-						</div>
-						<TransactionsTable />
+						<Router>
+							<Switch>
+								<Redirect exact from="/" to="/wrap" />
+								<Route path="/wrap">
+									<MainContentContainer>
+										<AllowanceProvider>
+											<WrappableProvider>
+												<Wrap devBalance={devBalance ?? BigNumber.from(0)} currentChain={currentChainId} />
+											</WrappableProvider>
+										</AllowanceProvider>
+									</MainContentContainer>
+								</Route>
+								<Route path="/unwrap">
+									<MainContentContainer>
+										<span>Unwrap</span>
+									</MainContentContainer>
+								</Route>
+								<Route path="/bridge">
+									<AllowanceProvider>
+										<MainContentContainer>
+											<DepositForm currentChain={currentChainId} wDevBalance={wDevBalance} />
+										</MainContentContainer>
+										<TransactionsTable />
+									</AllowanceProvider>
+								</Route>
+							</Switch>
+						</Router>
+						{/* </div>
+						</div> */}
 					</BridgeProvider>
 				</main>
 			</div>
