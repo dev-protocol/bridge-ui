@@ -129,3 +129,23 @@ export const getL1WrapperAddressByChainId = (chainId: number): string => {
 			throw Error(`no gateway address for this network ${chainId}`);
 	}
 };
+
+// Using arb-ts Network, we can use explorerUrl instead...
+export const getExplorerUrlByChainId = (chainId: number): UndefinedOr<string> => {
+	switch (chainId) {
+		case 1:
+			return 'https://etherscan.io';
+
+		// Rinkeby
+		case 4:
+			return 'https://rinkeby.etherscan.io';
+
+		// RinkArby
+		case 421611:
+			return 'https://testnet.arbiscan.io';
+
+		// Arbitrum Mainnet
+		case 42161:
+			return 'https://arbiscan.io';
+	}
+};
