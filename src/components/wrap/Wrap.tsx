@@ -10,13 +10,15 @@ import { getAvailableL1NetworkByChainId, isValidChain, isValidL1Chain } from '..
 import { AllowanceContext } from '../../context/allowanceContext';
 import ConfirmWrapModal from './ConfirmWrapModal';
 import { L1Network } from '../../types/types';
+import { WrappableContext } from '../../context/wrappableContext';
 
 type WrapParams = {
 	devBalance: BigNumber;
 	currentChain: number | null;
+	refreshBalances(): void;
 };
 
-const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
+const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances }) => {
 	const [amount, setAmount] = useState<BigNumber>();
 	const [formValid, setFormValid] = useState(false);
 	const [network, setNetwork] = useState<UndefinedOr<L1Network>>();
@@ -24,6 +26,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 	const web3Context = useWeb3Provider();
 	const [isValidNetwork, setIsValidNetwork] = useState(false);
 	const { allowance, fetchAllowance } = useContext(AllowanceContext);
+	const { loading } = useContext(WrappableContext);
 	const [displayModal, setDisplayModal] = useState(false);
 
 	const getNetwork = useCallback(async (): Promise<void> => {
@@ -56,6 +59,11 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 		e.preventDefault();
 		const amount = devBalance ? ethers.utils.formatUnits(devBalance?.toString(), 18) : '0';
 		updateAmount(amount);
+	};
+
+	const onTxSuccess = () => {
+		updateAmount('');
+		refreshBalances();
 	};
 
 	useEffect(() => {
@@ -124,7 +132,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 				<div className="text-center">
 					<FontAwesomeIcon icon={faArrowDown} />
 				</div>
-				<div className="flex flex-col mb-4">
+				<div className="flex flex-col mb-8">
 					<span className="block text-gray-700 text-sm font-bold flex-grow pr-2">To</span>
 
 					<div className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-full capitalize bg-gray-100">
@@ -136,11 +144,14 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 
 				{/** VALID -> Connected to compatible chain */}
 				{isConnected && network && allowance.gt(0) && (
-					// <Convert formValid={formValid} amount={amount} network={network} selectedTargetChain={selectedTargetChain} />
 					<button
-						className="w-full bg-blue-600 text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150 w-28 flex justify-center"
+						className="w-full bg-blue-600 text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150 w-28 h-14 flex justify-center items-center"
 						onClick={_ => setDisplayModal(true)}>
-						Wrap
+						{loading && (
+							<div className="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4"></div>
+						)}
+
+						{!loading && <span>Wrap</span>}
 					</button>
 				)}
 
@@ -149,7 +160,8 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain }) => {
 						setDisplayModal={setDisplayModal}
 						amount={amount}
 						tokenAddress={network?.wrapperTokenAddress}
-						onError={e => console.log('a wrap error occurred: ', e)}></ConfirmWrapModal>
+						onError={e => console.log('a wrap error occurred: ', e)}
+						txSuccess={onTxSuccess}></ConfirmWrapModal>
 				)}
 
 				{/** Approval Required */}

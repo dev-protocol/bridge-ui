@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import DepositForm from './components/convert/ConvertForm';
 import ConnectButton from './components/ConnectButton';
@@ -26,34 +26,35 @@ const App: React.FC = () => {
 		setCurrentChainId(+chainId);
 	};
 
-	useEffect(() => {
-		const getDEVBalance = async () => {
-			if (web3ProviderContext?.web3Provider) {
-				const provider = web3ProviderContext?.web3Provider;
-				const network = await provider.getNetwork();
-				const chainId = await network?.chainId;
-				const address = await provider.getSigner().getAddress();
+	const getDEVBalance = useCallback(async () => {
+		if (web3ProviderContext?.web3Provider) {
+			const provider = web3ProviderContext?.web3Provider;
+			const network = await provider.getNetwork();
+			const chainId = await network?.chainId;
+			const address = await provider.getSigner().getAddress();
 
-				const availableNetwork = getAvailableNetworkByChainId(chainId);
+			const availableNetwork = getAvailableNetworkByChainId(chainId);
 
-				// is L1 or L2 compliant network
-				if (availableNetwork) {
-					const devContract = new Contract(availableNetwork.tokenAddress, erc20ABI, provider);
-					const devBalance: BigNumber = await devContract.balanceOf(address);
-					setDevBalance(devBalance);
-				}
-
-				// is L1 network
-				const l1AvailableNetwork = getAvailableL1NetworkByChainId(chainId);
-				if (l1AvailableNetwork) {
-					const arbWrapperContract = new Contract(l1AvailableNetwork.wrapperTokenAddress, erc20ABI, provider);
-					const wDevBalance = await arbWrapperContract.balanceOf(address);
-					setWDevBalance(wDevBalance);
-				}
+			// is L1 or L2 compliant network
+			if (availableNetwork) {
+				const devContract = new Contract(availableNetwork.tokenAddress, erc20ABI, provider);
+				const devBalance: BigNumber = await devContract.balanceOf(address);
+				setDevBalance(devBalance);
 			}
-		};
+
+			// is L1 network
+			const l1AvailableNetwork = getAvailableL1NetworkByChainId(chainId);
+			if (l1AvailableNetwork) {
+				const arbWrapperContract = new Contract(l1AvailableNetwork.wrapperTokenAddress, erc20ABI, provider);
+				const wDevBalance = await arbWrapperContract.balanceOf(address);
+				setWDevBalance(wDevBalance);
+			}
+		}
+	}, [web3ProviderContext?.web3Provider]);
+
+	useEffect(() => {
 		getDEVBalance();
-	}, [web3ProviderContext]);
+	}, [web3ProviderContext, getDEVBalance]);
 
 	return (
 		<WebProviderContext.Provider value={web3ProviderContext}>
@@ -68,7 +69,7 @@ const App: React.FC = () => {
 					<div className="flex flex-col items-end">
 						<ConnectButton onChainChanged={updateChain} />
 						{devBalance && wDevBalance && (
-							<div className="text-white">
+							<div className="text-white text-right">
 								<span>DEV: {ethers.utils.formatUnits(devBalance?.toString(), 18).toString()}</span>
 								<br />
 								<span>Wrapped DEV: {ethers.utils.formatUnits(wDevBalance?.toString(), 18).toString()}</span>
@@ -85,7 +86,11 @@ const App: React.FC = () => {
 									<MainContentContainer>
 										<AllowanceProvider>
 											<WrappableProvider>
-												<Wrap devBalance={devBalance ?? BigNumber.from(0)} currentChain={currentChainId} />
+												<Wrap
+													devBalance={devBalance ?? BigNumber.from(0)}
+													currentChain={currentChainId}
+													refreshBalances={getDEVBalance}
+												/>
 											</WrappableProvider>
 										</AllowanceProvider>
 									</MainContentContainer>

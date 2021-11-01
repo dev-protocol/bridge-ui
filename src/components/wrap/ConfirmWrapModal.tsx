@@ -8,15 +8,20 @@ import { WrappableContext } from '../../context/wrappableContext';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
 
 type ConfirmWrapModalParams = {
-	// currentChain: number | null;
-	// devBalance: UndefinedOr<BigNumber>;
 	amount: BigNumber;
 	setDisplayModal: React.Dispatch<React.SetStateAction<boolean>>;
 	tokenAddress: string;
 	onError(message: string): void;
+	txSuccess(): void;
 };
 
-const ConfirmWrapModal: React.FC<ConfirmWrapModalParams> = ({ amount, tokenAddress, setDisplayModal, onError }) => {
+const ConfirmWrapModal: React.FC<ConfirmWrapModalParams> = ({
+	amount,
+	tokenAddress,
+	setDisplayModal,
+	onError,
+	txSuccess
+}) => {
 	const { allowance } = useContext(AllowanceContext);
 	const { wrap, loading, setLoading } = useContext(WrappableContext);
 	const web3Context = useWeb3Provider();
@@ -30,7 +35,8 @@ const ConfirmWrapModal: React.FC<ConfirmWrapModalParams> = ({ amount, tokenAddre
 				const success = await wrap({
 					amount: _amount,
 					tokenAddress,
-					provider: currentProvider
+					provider: currentProvider,
+					txSuccess
 				});
 				if (success) {
 					setDisplayModal(false);
