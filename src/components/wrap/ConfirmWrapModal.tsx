@@ -29,11 +29,10 @@ const ConfirmWrapModal: React.FC<ConfirmWrapModalParams> = ({
 	const submitWrap = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const currentProvider = web3Context?.web3Provider;
-		const _amount = utils.parseEther(amount.toString());
 		if (currentProvider) {
 			try {
 				const success = await wrap({
-					amount: _amount,
+					amount,
 					tokenAddress,
 					provider: currentProvider,
 					txSuccess
@@ -58,7 +57,7 @@ const ConfirmWrapModal: React.FC<ConfirmWrapModalParams> = ({
 					<div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
 						<div>
 							<div className="relative p-6 flex-auto font-semibold">
-								Converting <span className="text-bold">{amount ? amount.toString() : 0} DEV</span>
+								Converting <span className="text-bold">{amount ? utils.formatEther(amount) : 0} DEV</span>
 								<div>
 									<FontAwesomeIcon icon={faArrowDown} />
 								</div>

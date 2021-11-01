@@ -191,22 +191,20 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 			return;
 		}
 
-		const parsedAmount = ethers.utils.parseUnits(amount.toString());
-
 		const l1WrapperAddress = await _getL1TokenAddress();
 		if (!l1WrapperAddress) {
 			console.error('error fetching l1ChainId');
 			return;
 		}
 
-		const res = await bridge.deposit(l1WrapperAddress, parsedAmount);
+		const res = await bridge.deposit(l1WrapperAddress, amount);
 
 		setL1PendingTxHashes([
 			...l1PendingTxs,
 			{
 				direction: ConvertDirection.DEPOSIT,
 				hash: res.hash,
-				value: parsedAmount
+				value: amount
 			}
 		]);
 	};
@@ -217,22 +215,20 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 			return;
 		}
 
-		const parsedAmount = ethers.utils.parseUnits(amount.toString());
-
 		const l1WrapperAddress = await _getL1TokenAddress();
 		if (!l1WrapperAddress) {
 			console.error('error fetching l1ChainId');
 			return;
 		}
 
-		const withdrawTx = await bridge.withdrawERC20(l1WrapperAddress, parsedAmount);
+		const withdrawTx = await bridge.withdrawERC20(l1WrapperAddress, amount);
 
 		setL2PendingTxHashes([
 			...l1PendingTxs,
 			{
 				direction: ConvertDirection.WITHDRAW,
 				hash: withdrawTx.hash,
-				value: parsedAmount
+				value: amount
 			}
 		]);
 	};

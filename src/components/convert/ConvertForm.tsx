@@ -2,20 +2,22 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
+	getAvailableL1NetworkByChainId,
 	getAvailableNetworkByChainId,
 	getGatewayAddressByChainId,
 	getTargetNetworkOptions,
 	isValidChain
 } from '../../utils/utils';
 import { BigNumber } from '@ethersproject/bignumber';
-import { ethers } from 'ethers';
-import { UndefinedOr } from '@devprotocol/util-ts';
+import { Contract, ethers, utils } from 'ethers';
+import { UndefinedOr, whenDefined } from '@devprotocol/util-ts';
 import { AvailableNetwork } from '../../types/types';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
 import { AllowanceContext } from '../../context/allowanceContext';
 import Approval from '../approval/Approval';
 import Convert from './Convert';
 import { RINKEBY } from '../../constants/constants';
+import erc20ABI from '../../constants/erc20.abi.json';
 
 type DepositParams = {
 	currentChain: number | null;
@@ -44,7 +46,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 
 		// check if is valid number
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
-			const newAmount = BigNumber.from(+val);
+			const newAmount = utils.parseEther(val);
 			setAmount(newAmount);
 			setFormValid(wDevBalance && wDevBalance?.gte(newAmount) && +val > 0 ? true : false);
 		} else {
@@ -87,12 +89,13 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 			const currentProvider = web3Context?.web3Provider;
 			if (currentProvider && network) {
 				const sourceNetwork = getAvailableNetworkByChainId(network.chainId);
+				const sourceL1Network = getAvailableL1NetworkByChainId(network.chainId);
 				const gatewayAddress = getGatewayAddressByChainId(network.chainId);
 				setGatewayAddress(gatewayAddress);
 				if (sourceNetwork) {
 					await fetchAllowance({
 						provider: currentProvider,
-						tokenAddress: sourceNetwork?.tokenAddress,
+						tokenAddress: sourceL1Network ? sourceL1Network.wrapperTokenAddress : sourceNetwork?.tokenAddress,
 						spenderAddress: gatewayAddress
 					});
 					// setAllowance(_allowance);
@@ -119,10 +122,24 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 		getProvider();
 	}, [web3Context, getNetwork]);
 
-	const setMax = (e: React.FormEvent) => {
+	const setMax = async (e: React.FormEvent) => {
 		e.preventDefault();
-		const amount = wDevBalance ? ethers.utils.formatUnits(wDevBalance?.toString(), 18) : '0';
-		updateAmount(amount);
+		if (web3Context?.web3Provider) {
+			const provider = web3Context?.web3Provider;
+			const network = await provider.getNetwork();
+			const address = await provider.getSigner().getAddress();
+
+			const availableNetwork = getAvailableNetworkByChainId(network?.chainId);
+			const l1AvailableNetwork = getAvailableL1NetworkByChainId(network?.chainId);
+
+			const contractAddress = l1AvailableNetwork
+				? l1AvailableNetwork.wrapperTokenAddress
+				: availableNetwork?.tokenAddress;
+			const contract = whenDefined(contractAddress, x => new Contract(x, erc20ABI, provider));
+			const balance = await whenDefined(contract, x => x.balanceOf(address));
+			const amount = balance ? ethers.utils.formatUnits(balance?.toString(), 18) : '0';
+			updateAmount(amount);
+		}
 	};
 
 	// this is for testing allowance to reset
@@ -146,7 +163,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 								type="text"
 								placeholder="Enter DEV amount"
 								onChange={e => updateAmount(e.target.value)}
-								value={amount ? amount?.toString() : ''}
+								value={amount ? utils.formatEther(amount) : ''}
 							/>
 						</label>
 						<button

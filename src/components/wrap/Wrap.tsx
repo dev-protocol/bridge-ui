@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { BigNumber } from '@ethersproject/bignumber';
-import { ethers } from 'ethers';
+import { ethers, utils } from 'ethers';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { UndefinedOr } from '@devprotocol/util-ts';
 import Approval from '../approval/Approval';
@@ -47,7 +47,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 
 		// check if is valid number
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
-			const newAmount = BigNumber.from(+val);
+			const newAmount = utils.parseUnits(val);
 			setAmount(newAmount);
 			setFormValid(devBalance && devBalance?.gte(newAmount) && +val > 0 ? true : false);
 		} else {
@@ -115,7 +115,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 								type="text"
 								placeholder="Enter DEV amount"
 								onChange={e => updateAmount(e.target.value)}
-								value={amount ? amount?.toString() : ''}
+								value={amount ? utils.formatUnits(amount) : ''}
 							/>
 						</label>
 						<button
