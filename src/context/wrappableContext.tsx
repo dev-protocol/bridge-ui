@@ -13,6 +13,7 @@ interface IUnwrapParams {
 	tokenAddress: string;
 	provider: ethers.providers.Web3Provider;
 	amount?: ethers.BigNumber;
+	txSuccess(): void;
 }
 
 interface WrappableContextInterface {

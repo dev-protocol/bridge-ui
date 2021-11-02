@@ -97,7 +97,13 @@ const App: React.FC = () => {
 								</Route>
 								<Route path="/unwrap">
 									<MainContentContainer>
-										<Unwrap />
+										<WrappableProvider>
+											<Unwrap
+												wDevBalance={wDevBalance ?? BigNumber.from(0)}
+												currentChain={currentChainId}
+												refreshBalances={getDEVBalance}
+											/>
+										</WrappableProvider>
 									</MainContentContainer>
 								</Route>
 								<Route path="/bridge">
