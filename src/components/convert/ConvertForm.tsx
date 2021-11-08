@@ -46,9 +46,9 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 
 		// check if is valid number
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
-			const newAmount = utils.parseEther(val);
+			const newAmount = BigNumber.from(val);
 			setAmount(newAmount);
-			setFormValid(wDevBalance && wDevBalance?.gte(newAmount) && +val > 0 ? true : false);
+			setFormValid(wDevBalance && wDevBalance?.gte(utils.parseEther(val)) && +val > 0 ? true : false);
 		} else {
 			setFormValid(false);
 		}
@@ -159,11 +159,11 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 							Amount
 							<input
 								className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								id="username"
+								id="bridge-input"
 								type="text"
 								placeholder="Enter DEV amount"
 								onChange={e => updateAmount(e.target.value)}
-								value={amount ? utils.formatEther(amount) : ''}
+								value={amount ? amount?.toString() : ''}
 							/>
 						</label>
 						<button
