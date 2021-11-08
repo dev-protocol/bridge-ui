@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { BigNumber } from '@ethersproject/bignumber';
-import { ethers } from 'ethers';
+import { ethers, utils } from 'ethers';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { UndefinedOr } from '@devprotocol/util-ts';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
@@ -46,7 +46,7 @@ const Unwrap: React.FC<UnwrapParams> = ({ wDevBalance, currentChain, refreshBala
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
 			const newAmount = BigNumber.from(+val);
 			setAmount(newAmount);
-			setFormValid(wDevBalance && wDevBalance?.gte(newAmount) && +val > 0 ? true : false);
+			setFormValid(wDevBalance && wDevBalance?.gte(utils.parseUnits(val)) && +val > 0 ? true : false);
 		} else {
 			setFormValid(false);
 		}
@@ -97,7 +97,7 @@ const Unwrap: React.FC<UnwrapParams> = ({ wDevBalance, currentChain, refreshBala
 							Amount
 							<input
 								className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								id="username"
+								id="unwrap-input"
 								type="text"
 								placeholder="Enter DEV amount"
 								onChange={e => updateAmount(e.target.value)}
@@ -131,8 +131,11 @@ const Unwrap: React.FC<UnwrapParams> = ({ wDevBalance, currentChain, refreshBala
 				{/** VALID -> Connected to compatible chain */}
 				{isConnected && network && (
 					<button
-						className="w-full bg-blue-600 text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150 w-28 h-14 flex justify-center items-center"
-						onClick={_ => setDisplayModal(true)}>
+						className={`w-full text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150 w-28 h-14 flex justify-center items-center ${
+							formValid ? 'bg-blue-600' : 'bg-gray-400'
+						}`}
+						onClick={_ => setDisplayModal(true)}
+						disabled={!formValid}>
 						{loading && (
 							<div className="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4"></div>
 						)}

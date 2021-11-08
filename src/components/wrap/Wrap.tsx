@@ -47,9 +47,9 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 
 		// check if is valid number
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
-			const newAmount = utils.parseUnits(val);
+			const newAmount = BigNumber.from(val);
 			setAmount(newAmount);
-			setFormValid(devBalance && devBalance?.gte(newAmount) && +val > 0 ? true : false);
+			setFormValid(devBalance && devBalance?.gte(utils.parseUnits(val)) && +val > 0 ? true : false);
 		} else {
 			setFormValid(false);
 		}
@@ -111,11 +111,11 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 							Amount
 							<input
 								className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								id="username"
+								id="wrap-input"
 								type="text"
 								placeholder="Enter DEV amount"
 								onChange={e => updateAmount(e.target.value)}
-								value={amount ? utils.formatUnits(amount) : ''}
+								value={amount ? amount?.toString() : ''}
 							/>
 						</label>
 						<button
@@ -158,7 +158,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 				{displayModal && amount && network && (
 					<ConfirmWrapModal
 						setDisplayModal={setDisplayModal}
-						amount={amount}
+						amount={utils.parseUnits(amount.toString())}
 						tokenAddress={network?.wrapperTokenAddress}
 						onError={e => console.log('a wrap error occurred: ', e)}
 						txSuccess={onTxSuccess}></ConfirmWrapModal>
