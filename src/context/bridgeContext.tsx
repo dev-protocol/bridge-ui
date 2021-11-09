@@ -4,12 +4,12 @@ import { Network } from 'arb-ts/dist/lib/networks';
 import { ethers } from 'arb-ts/node_modules/ethers';
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import { useInterval } from '../hooks/useInterval';
-// import { AvailableNetwork } from '../types/types';
 import { getL1WrapperAddressByChainId, getRpcUrl } from '../utils/utils';
 
 interface IBridgeProviderParams {
 	children: React.ReactNode;
 	provider: UndefinedOr<ethers.providers.Web3Provider>;
+	refreshBalances(): void;
 }
 
 interface ICreateBridgeParams {
@@ -56,7 +56,11 @@ const bridgeContext: IBridgeContext = {
 
 export const BridgeContext = createContext(bridgeContext);
 
-export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, provider }: IBridgeProviderParams) => {
+export const BridgeProvider: React.FC<IBridgeProviderParams> = ({
+	children,
+	provider,
+	refreshBalances
+}: IBridgeProviderParams) => {
 	const [bridge, setBridge] = useState<UndefinedOr<Bridge>>(undefined);
 	const [pollDelay] = useState(10000);
 	const [isPolling] = useState(true);
@@ -88,6 +92,7 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 
 					if (l1Tx.confirmations > 0) {
 						setL1PendingTxHashes(l1PendingTxs.filter(item => item.hash !== tx.hash));
+						refreshBalances();
 					}
 				} catch (error) {
 					console.log(error);
@@ -116,6 +121,7 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({ children, prov
 
 					if (l2Tx.confirmations > 0) {
 						setL2PendingTxHashes(l2PendingTxs.filter(item => item.hash !== tx.hash));
+						refreshBalances();
 					}
 				} catch (error) {
 					console.log(error);
