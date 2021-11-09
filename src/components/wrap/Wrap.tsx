@@ -47,7 +47,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 
 		// check if is valid number
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
-			const newAmount = BigNumber.from(val);
+			const newAmount = BigNumber.from(+val);
 			setAmount(newAmount);
 			setFormValid(devBalance && devBalance?.gte(utils.parseUnits(val)) && +val > 0 ? true : false);
 		} else {
