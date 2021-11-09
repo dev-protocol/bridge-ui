@@ -149,3 +149,9 @@ export const getExplorerUrlByChainId = (chainId: number): UndefinedOr<string> =>
 			return 'https://arbiscan.io';
 	}
 };
+
+const validNumber = new RegExp(/^\d*\.?\d*$/);
+
+export const isNumberInput = (str: string): boolean => {
+	return validNumber.test(str);
+};

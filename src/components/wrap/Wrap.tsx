@@ -6,7 +6,7 @@ import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { UndefinedOr } from '@devprotocol/util-ts';
 import Approval from '../approval/Approval';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
-import { getAvailableL1NetworkByChainId, isValidChain, isValidL1Chain } from '../../utils/utils';
+import { getAvailableL1NetworkByChainId, isNumberInput, isValidChain, isValidL1Chain } from '../../utils/utils';
 import { AllowanceContext } from '../../context/allowanceContext';
 import ConfirmWrapModal from './ConfirmWrapModal';
 import { L1Network } from '../../types/types';
@@ -20,6 +20,7 @@ type WrapParams = {
 
 const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances }) => {
 	const [amount, setAmount] = useState<BigNumber>();
+	const [displayAmount, setDisplayAmount] = useState('');
 	const [formValid, setFormValid] = useState(false);
 	const [network, setNetwork] = useState<UndefinedOr<L1Network>>();
 	const [isConnected, setIsConnected] = useState(false);
@@ -42,14 +43,26 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 		if (val.length <= 0) {
 			setAmount(undefined);
 			setFormValid(false);
+			setDisplayAmount('');
 			return;
 		}
 
+		if (!isNumberInput(val)) {
+			return;
+		}
+
+		setDisplayAmount(val);
+
 		// check if is valid number
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
-			const newAmount = BigNumber.from(+val);
-			setAmount(newAmount);
-			setFormValid(devBalance && devBalance?.gte(utils.parseUnits(val)) && +val > 0 ? true : false);
+			try {
+				const units = utils.parseUnits(val);
+				setAmount(units);
+				setFormValid(devBalance && devBalance?.gte(units) && +val > 0 ? true : false);
+			} catch (error) {
+				setFormValid(false);
+				console.log('err is: ', error);
+			}
 		} else {
 			setFormValid(false);
 		}
@@ -115,7 +128,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 								type="text"
 								placeholder="Enter DEV amount"
 								onChange={e => updateAmount(e.target.value)}
-								value={amount ? amount?.toString() : ''}
+								value={displayAmount}
 							/>
 						</label>
 						<button
@@ -158,7 +171,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 				{displayModal && amount && network && (
 					<ConfirmWrapModal
 						setDisplayModal={setDisplayModal}
-						amount={utils.parseUnits(amount.toString())}
+						amount={amount}
 						tokenAddress={network?.wrapperTokenAddress}
 						onError={e => console.log('a wrap error occurred: ', e)}
 						txSuccess={onTxSuccess}></ConfirmWrapModal>
