@@ -46,7 +46,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 
 		// check if is valid number
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
-			const newAmount = BigNumber.from(val);
+			const newAmount = BigNumber.from(+val);
 			setAmount(newAmount);
 			setFormValid(wDevBalance && wDevBalance?.gte(utils.parseEther(val)) && +val > 0 ? true : false);
 		} else {
