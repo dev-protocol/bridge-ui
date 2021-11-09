@@ -1,6 +1,6 @@
 import { UndefinedOr } from '@devprotocol/util-ts';
 import { networks } from 'arb-ts';
-import { ethers, utils } from 'ethers';
+import { ethers } from 'ethers';
 import React, { useContext, useState } from 'react';
 import { BridgeContext } from '../../context/bridgeContext';
 import { AvailableNetwork } from '../../types/types';
@@ -37,13 +37,12 @@ const Convert: React.FC<ConvertParams> = ({ formValid, amount, network, selected
 		}
 
 		try {
-			const formattedAmount = utils.parseUnits(amount.toString());
 			if (currentNetwork.isArbitrum) {
 				// Withdraw
-				await bridgeContext.withdraw(formattedAmount);
+				await bridgeContext.withdraw(amount);
 			} else {
 				// Deposit
-				await bridgeContext.deposit(formattedAmount);
+				await bridgeContext.deposit(amount);
 			}
 		} catch (error) {
 			setLoading(false);
@@ -76,7 +75,7 @@ const Convert: React.FC<ConvertParams> = ({ formValid, amount, network, selected
 						confirmTransaction={submitTransaction}
 						sourceNetwork={network}
 						targetNetwork={selectedTargetChain}
-						amount={utils.parseUnits(amount.toString())}
+						amount={amount}
 						loading={loading}
 					/>
 				</div>
