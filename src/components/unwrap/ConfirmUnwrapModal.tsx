@@ -25,11 +25,10 @@ const ConfirmUnwrapModal: React.FC<ConfirmUnwrapModalParams> = ({
 	const submitUnwrap = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const currentProvider = web3Context?.web3Provider;
-		const _amount = utils.parseEther(amount.toString());
 		if (currentProvider) {
 			try {
 				const success = await unwrap({
-					amount: _amount,
+					amount,
 					tokenAddress,
 					provider: currentProvider,
 					txSuccess
@@ -52,7 +51,7 @@ const ConfirmUnwrapModal: React.FC<ConfirmUnwrapModalParams> = ({
 					<div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
 						<div>
 							<div className="relative p-6 flex-auto font-semibold">
-								Converting <span className="text-bold">{amount ? amount.toString() : 0} Wrapped DEV</span>
+								Converting <span className="text-bold">{amount ? utils.formatEther(amount) : 0} Wrapped DEV</span>
 								<div>
 									<FontAwesomeIcon icon={faArrowDown} />
 								</div>

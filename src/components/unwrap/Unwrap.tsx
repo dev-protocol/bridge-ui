@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { BigNumber } from '@ethersproject/bignumber';
-import { ethers } from 'ethers';
+import { ethers, utils } from 'ethers';
 import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { UndefinedOr } from '@devprotocol/util-ts';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
-import { getAvailableL1NetworkByChainId, isValidChain, isValidL1Chain } from '../../utils/utils';
+import { getAvailableL1NetworkByChainId, isNumberInput, isValidChain, isValidL1Chain } from '../../utils/utils';
 import ConfirmUnwrapModal from './ConfirmUnwrapModal';
 import { L1Network } from '../../types/types';
 import { WrappableContext } from '../../context/wrappableContext';
@@ -18,6 +18,7 @@ type UnwrapParams = {
 
 const Unwrap: React.FC<UnwrapParams> = ({ wDevBalance, currentChain, refreshBalances }) => {
 	const [amount, setAmount] = useState<BigNumber>();
+	const [displayAmount, setDisplayAmount] = useState('');
 	const [formValid, setFormValid] = useState(false);
 	const [network, setNetwork] = useState<UndefinedOr<L1Network>>();
 	const [isConnected, setIsConnected] = useState(false);
@@ -39,14 +40,26 @@ const Unwrap: React.FC<UnwrapParams> = ({ wDevBalance, currentChain, refreshBala
 		if (val.length <= 0) {
 			setAmount(undefined);
 			setFormValid(false);
+			setDisplayAmount('');
 			return;
 		}
 
+		if (!isNumberInput(val)) {
+			return;
+		}
+
+		setDisplayAmount(val);
+
 		// check if is valid number
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
-			const newAmount = BigNumber.from(+val);
-			setAmount(newAmount);
-			setFormValid(wDevBalance && wDevBalance?.gte(newAmount) && +val > 0 ? true : false);
+			try {
+				const units = utils.parseUnits(val);
+				setAmount(units);
+				setFormValid(wDevBalance && wDevBalance?.gte(units) && +val > 0 ? true : false);
+			} catch (error) {
+				console.log(error);
+				setFormValid(false);
+			}
 		} else {
 			setFormValid(false);
 		}
@@ -97,11 +110,11 @@ const Unwrap: React.FC<UnwrapParams> = ({ wDevBalance, currentChain, refreshBala
 							Amount
 							<input
 								className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								id="username"
+								id="unwrap-input"
 								type="text"
 								placeholder="Enter DEV amount"
 								onChange={e => updateAmount(e.target.value)}
-								value={amount ? amount?.toString() : ''}
+								value={displayAmount}
 							/>
 						</label>
 						<button
@@ -131,8 +144,11 @@ const Unwrap: React.FC<UnwrapParams> = ({ wDevBalance, currentChain, refreshBala
 				{/** VALID -> Connected to compatible chain */}
 				{isConnected && network && (
 					<button
-						className="w-full bg-blue-600 text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150 w-28 h-14 flex justify-center items-center"
-						onClick={_ => setDisplayModal(true)}>
+						className={`w-full text-white active:bg-blue-700 font-bold text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150 w-28 h-14 flex justify-center items-center ${
+							formValid ? 'bg-blue-600' : 'bg-gray-400'
+						}`}
+						onClick={_ => setDisplayModal(true)}
+						disabled={!formValid}>
 						{loading && (
 							<div className="loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-4 w-4"></div>
 						)}

@@ -68,7 +68,7 @@ const Convert: React.FC<ConvertParams> = ({ formValid, amount, network, selected
 					{!loading && <span>Convert</span>}
 				</button>
 			</div>
-			{displayModal && (
+			{displayModal && amount && (
 				<div>
 					<DepositConfirmationModal
 						setDisplayModal={setDisplayModal}

@@ -6,7 +6,7 @@ import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { UndefinedOr } from '@devprotocol/util-ts';
 import Approval from '../approval/Approval';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
-import { getAvailableL1NetworkByChainId, isValidChain, isValidL1Chain } from '../../utils/utils';
+import { getAvailableL1NetworkByChainId, isNumberInput, isValidChain, isValidL1Chain } from '../../utils/utils';
 import { AllowanceContext } from '../../context/allowanceContext';
 import ConfirmWrapModal from './ConfirmWrapModal';
 import { L1Network } from '../../types/types';
@@ -20,6 +20,7 @@ type WrapParams = {
 
 const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances }) => {
 	const [amount, setAmount] = useState<BigNumber>();
+	const [displayAmount, setDisplayAmount] = useState('');
 	const [formValid, setFormValid] = useState(false);
 	const [network, setNetwork] = useState<UndefinedOr<L1Network>>();
 	const [isConnected, setIsConnected] = useState(false);
@@ -42,14 +43,26 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 		if (val.length <= 0) {
 			setAmount(undefined);
 			setFormValid(false);
+			setDisplayAmount('');
 			return;
 		}
 
+		if (!isNumberInput(val)) {
+			return;
+		}
+
+		setDisplayAmount(val);
+
 		// check if is valid number
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
-			const newAmount = utils.parseUnits(val);
-			setAmount(newAmount);
-			setFormValid(devBalance && devBalance?.gte(newAmount) && +val > 0 ? true : false);
+			try {
+				const units = utils.parseUnits(val);
+				setAmount(units);
+				setFormValid(devBalance && devBalance?.gte(units) && +val > 0 ? true : false);
+			} catch (error) {
+				setFormValid(false);
+				console.log('err is: ', error);
+			}
 		} else {
 			setFormValid(false);
 		}
@@ -111,11 +124,11 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 							Amount
 							<input
 								className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								id="username"
+								id="wrap-input"
 								type="text"
 								placeholder="Enter DEV amount"
 								onChange={e => updateAmount(e.target.value)}
-								value={amount ? utils.formatUnits(amount) : ''}
+								value={displayAmount}
 							/>
 						</label>
 						<button

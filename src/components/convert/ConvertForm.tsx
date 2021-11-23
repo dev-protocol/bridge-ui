@@ -6,6 +6,7 @@ import {
 	getAvailableNetworkByChainId,
 	getGatewayAddressByChainId,
 	getTargetNetworkOptions,
+	isNumberInput,
 	isValidChain
 } from '../../utils/utils';
 import { BigNumber } from '@ethersproject/bignumber';
@@ -26,6 +27,7 @@ type DepositParams = {
 
 const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => {
 	const [amount, setAmount] = useState<BigNumber>();
+	const [displayAmount, setDisplayAmount] = useState('');
 	const [formValid, setFormValid] = useState(false);
 	const [isConnected, setIsConnected] = useState(false);
 	const [isValidNetwork, setIsValidNetwork] = useState(false);
@@ -41,14 +43,26 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 		if (val.length <= 0) {
 			setAmount(undefined);
 			setFormValid(false);
+			setDisplayAmount('');
 			return;
 		}
 
+		if (!isNumberInput(val)) {
+			return;
+		}
+
+		setDisplayAmount(val);
+
 		// check if is valid number
 		if (!isNaN(parseFloat(val)) && isFinite(+val)) {
-			const newAmount = utils.parseEther(val);
-			setAmount(newAmount);
-			setFormValid(wDevBalance && wDevBalance?.gte(newAmount) && +val > 0 ? true : false);
+			try {
+				const units = utils.parseUnits(val);
+				setAmount(units);
+				setFormValid(wDevBalance && wDevBalance?.gte(units) && +val > 0 ? true : false);
+			} catch (error) {
+				setFormValid(false);
+				console.log('err is: ', error);
+			}
 		} else {
 			setFormValid(false);
 		}
@@ -159,11 +173,11 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 							Amount
 							<input
 								className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-								id="username"
+								id="bridge-input"
 								type="text"
 								placeholder="Enter DEV amount"
 								onChange={e => updateAmount(e.target.value)}
-								value={amount ? utils.formatEther(amount) : ''}
+								value={displayAmount}
 							/>
 						</label>
 						<button

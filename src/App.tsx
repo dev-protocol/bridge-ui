@@ -78,7 +78,7 @@ const App: React.FC = () => {
 					</div>
 				</header>
 				<main>
-					<BridgeProvider provider={web3ProviderContext?.web3Provider}>
+					<BridgeProvider provider={web3ProviderContext?.web3Provider} refreshBalances={getDEVBalance}>
 						<Router>
 							<Switch>
 								<Redirect exact from="/" to="/wrap" />
