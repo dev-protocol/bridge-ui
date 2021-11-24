@@ -23,7 +23,7 @@ export const ArbitrumMainnet: AvailableNetwork = {
 	chainId: 42161,
 	layer: 2,
 	isTestnet: false,
-	tokenAddress: ''
+	tokenAddress: ARB_MAINNET_DEV_ADDRESS
 };
 
 export const MAINNET: L1Network = {
