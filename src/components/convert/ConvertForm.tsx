@@ -5,6 +5,7 @@ import {
 	getAvailableL1NetworkByChainId,
 	getAvailableNetworkByChainId,
 	getGatewayAddressByChainId,
+	getL1WrapperAddressByChainId,
 	getTargetNetworkOptions,
 	isNumberInput,
 	isValidChain
@@ -158,7 +159,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 
 	// this is for testing allowance to reset
 	// const onRevoke = async () => {
-	// 	allowanceContext?.revoke({ network, provider: web3Context?.web3Provider });
+	// 	revoke({ network, provider: web3Context?.web3Provider });
 	// };
 
 	return (
@@ -241,7 +242,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 						allowanceUpdated={() => console.log('allowance updated')}
 						onError={e => console.log('an approval error occurred: ', e)}
 						sourceNetwork={network}
-						tokenAddress={network?.tokenAddress}
+						tokenAddress={getL1WrapperAddressByChainId(network?.chainId)}
 						spenderAddress={gatewayAddress}
 					/>
 				)}
