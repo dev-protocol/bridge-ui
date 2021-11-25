@@ -203,7 +203,9 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({
 			return;
 		}
 
-		const res = await bridge.deposit(l1WrapperAddress, amount);
+		const gasPrice = await bridge.l1Provider.getGasPrice();
+
+		const res = await bridge.deposit(l1WrapperAddress, amount, { gasPriceBid: gasPrice });
 
 		setL1PendingTxHashes([
 			...l1PendingTxs,
