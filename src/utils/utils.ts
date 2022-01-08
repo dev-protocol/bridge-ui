@@ -10,15 +10,15 @@ import {
 	MAINNET_GATEWAY_ADDRESS,
 	RINKEBY_GATEWAY_ADDRESS
 } from '../constants/constants';
-import { AvailableNetwork, L1Network } from '../types/types';
+import { AvailableNetwork, L1Network, Destination } from '../types/types';
 import { getAddress } from '@ethersproject/address';
 import { Network } from 'arb-ts/dist/lib/networks';
 
 export const getAvailableNetworkByChainId = (id: number): UndefinedOr<AvailableNetwork> =>
 	AvailableNetworks.find(network => network.chainId === id);
 
-export const getAvailableL1NetworkByChainId = (id: number): UndefinedOr<L1Network> =>
-	L1Networks.find(network => network.chainId === id);
+export const getAvailableL1NetworkByChainId = (id: number, destination: Destination): UndefinedOr<L1Network> =>
+	L1Networks.find(network => network.chainId === id && network.destination === destination);
 
 /**
  * Check by chainId if you can interact with it as a bridge

@@ -15,6 +15,7 @@ export const ARB_MAINNET_DEV_ADDRESS = '0x91F5dC90979b058eBA3be6B7B7e523df7e84e1
 export const ARB_RINKEBY_DEV_ADDRESS = '0x53a8fc7d1663807eac3daafa81b5b3c81f028479'; // TODO: this needs to be changed is Dummy DEV for testing
 export const ARB_DEV_WRAPPER_RINKEBY = '0xb970C9AB82C9b5110d734bA413AA3527ddd9eB6F';
 export const ARB_DEV_WRAPPER_MAINNET = '0xcc069f8323858537158Dc47F6c208C8174038aF9';
+export const POLYGON_DEV_WRAPPER_MAINNET = '0xcc069f8323858537158Dc47F6c208C8174038aF9';
 
 // TODO - separate out available BRIDGE networks and available WRAP (only L1) networks
 
@@ -26,29 +27,42 @@ export const ArbitrumMainnet: AvailableNetwork = {
 	tokenAddress: ARB_MAINNET_DEV_ADDRESS
 };
 
-export const MAINNET: L1Network = {
+export const MAINNET_DEST_ARBITRUM: L1Network = {
 	name: 'Mainnet',
 	chainId: 1,
 	layer: 1,
 	isTestnet: false,
 	tokenAddress: L1_MAINNET_DEV_ADDRESS,
-	wrapperTokenAddress: ARB_DEV_WRAPPER_MAINNET
+	wrapperTokenAddress: ARB_DEV_WRAPPER_MAINNET,
+	destination: 'arbitrum'
 };
 
-export const RINKEBY: L1Network = {
+export const RINKEBY_DEST_ARBITRUM: L1Network = {
 	name: 'Rinkeby',
 	chainId: 4,
 	layer: 1,
 	isTestnet: true,
 	tokenAddress: L1_RINKEBY_DEV_ADDRESS, // this is a dummy ERC20 DEV token used for testing
-	wrapperTokenAddress: ARB_DEV_WRAPPER_RINKEBY
+	wrapperTokenAddress: ARB_DEV_WRAPPER_RINKEBY,
+	destination: 'arbitrum'
 };
 
-export const L1Networks = [MAINNET, RINKEBY];
+export const MAINNET_DEST_POLYGON: L1Network = {
+	name: 'Mainnet',
+	chainId: 1,
+	layer: 1,
+	isTestnet: false,
+	tokenAddress: L1_MAINNET_DEV_ADDRESS,
+	wrapperTokenAddress: POLYGON_DEV_WRAPPER_MAINNET,
+	destination: 'polygon'
+};
+
+export const L1Networks = [MAINNET_DEST_ARBITRUM, RINKEBY_DEST_ARBITRUM, MAINNET_DEST_POLYGON];
 
 export const AvailableNetworks: AvailableNetwork[] = [
-	MAINNET,
-	RINKEBY,
+	MAINNET_DEST_ARBITRUM,
+	RINKEBY_DEST_ARBITRUM,
+	MAINNET_DEST_POLYGON,
 	ArbitrumMainnet,
 	{
 		name: 'Arbitrum Rinkeby',

@@ -1,3 +1,5 @@
+export type Destination = 'arbitrum' | 'polygon';
+
 export type AvailableNetwork = {
 	name: string;
 	chainId: number;
@@ -8,4 +10,5 @@ export type AvailableNetwork = {
 
 export type L1Network = AvailableNetwork & {
 	wrapperTokenAddress: string;
+	destination: Destination;
 };

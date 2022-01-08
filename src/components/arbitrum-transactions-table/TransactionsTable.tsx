@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { BridgeContext } from '../../context/bridgeContext';
+import { BridgeContext } from '../../context/arbitrumBridgeContext';
 import PendingTableItem from './PendingTableItem';
 import ReceiptTableItem from './ReceiptTableItem';
 
