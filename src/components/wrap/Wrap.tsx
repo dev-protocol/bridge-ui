@@ -175,6 +175,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances,
 						amount={amount}
 						tokenAddress={network?.wrapperTokenAddress}
 						onError={e => console.log('a wrap error occurred: ', e)}
+						dest={dest}
 						txSuccess={onTxSuccess}></ConfirmWrapModal>
 				)}
 
