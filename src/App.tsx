@@ -62,7 +62,7 @@ const App: React.FC = () => {
 						<Redirect exact from="/" to="/arbitrum" />
 						<Route path="/:network">
 							<SwitchNetworks />
-							<NetworkContainer onChangeBalances={setBalances} />
+							<NetworkContainer onChangeBalances={setBalances} currentChain={currentChainId} />
 						</Route>
 					</Router>
 				</main>

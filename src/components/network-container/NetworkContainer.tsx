@@ -4,7 +4,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { Contract } from '@ethersproject/contracts';
 import erc20ABI from '../../constants/erc20.abi.json';
 import { getAvailableL1NetworkByChainId, getAvailableNetworkByChainId } from '../../utils/utils';
-import { useWeb3ProviderContext } from '../../context/web3ProviderContext';
+import { useWeb3Provider } from '../../context/web3ProviderContext';
 import { AllowanceProvider } from '../../context/allowanceContext';
 import { WrappableProvider } from '../../context/wrappableContext';
 import { BridgeProvider as ArbitrumBridgeContext } from '../../context/arbitrumBridgeContext';
@@ -19,23 +19,26 @@ import { Destination } from '../../types/types';
 import Bridge from '../_network/polygon/Bridge';
 
 type NetworkContainerParams = {
+	currentChain: number | null;
 	onChangeBalances: React.Dispatch<{ dev: UndefinedOr<BigNumber>; wdev: UndefinedOr<BigNumber> }>;
 };
 
-const NetworkContainer: React.FC<NetworkContainerParams> = ({ onChangeBalances }: NetworkContainerParams) => {
-	const web3ProviderContext = useWeb3ProviderContext();
-	const [currentChainId, setCurrentChainId] = useState<number | null>(null);
+const NetworkContainer: React.FC<NetworkContainerParams> = ({
+	currentChain,
+	onChangeBalances
+}: NetworkContainerParams) => {
+	const web3ProviderContext = useWeb3Provider();
 	const [devBalance, setDevBalance] = useState<BigNumber>();
 	const [wDevBalance, setWDevBalance] = useState<BigNumber>();
 	const { network } = useParams<{ network: Destination }>();
 
 	const getDEVBalance = useCallback(async () => {
-		if (currentChainId !== null && web3ProviderContext?.web3Provider) {
+		if (currentChain !== null && web3ProviderContext?.web3Provider) {
 			const provider = web3ProviderContext.web3Provider;
 			const address = await provider.getSigner().getAddress();
 
-			const availableNetwork = getAvailableNetworkByChainId(currentChainId);
-			const l1AvailableNetwork = getAvailableL1NetworkByChainId(currentChainId, network);
+			const availableNetwork = getAvailableNetworkByChainId(currentChain);
+			const l1AvailableNetwork = getAvailableL1NetworkByChainId(currentChain, network);
 
 			const devContract = whenDefined(availableNetwork, net => new Contract(net.tokenAddress, erc20ABI, provider));
 			const _devBalance: BigNumber = await whenDefined(devContract, dev => dev.balanceOf(address));
@@ -48,14 +51,11 @@ const NetworkContainer: React.FC<NetworkContainerParams> = ({ onChangeBalances }
 			setWDevBalance(_wDevBalance);
 			onChangeBalances({ dev: _devBalance, wdev: _wDevBalance });
 		}
-	}, [currentChainId, network, onChangeBalances, web3ProviderContext?.web3Provider]);
+	}, [currentChain, network, onChangeBalances, web3ProviderContext?.web3Provider]);
 
 	useEffect(() => {
 		getDEVBalance();
-		web3ProviderContext?.web3Provider?.getNetwork().then(net => {
-			setCurrentChainId(net.chainId);
-		});
-	}, [web3ProviderContext, getDEVBalance]);
+	}, [currentChain, getDEVBalance, web3ProviderContext]);
 
 	return (
 		<>
@@ -69,7 +69,7 @@ const NetworkContainer: React.FC<NetworkContainerParams> = ({ onChangeBalances }
 									<WrappableProvider>
 										<Wrap
 											devBalance={devBalance ?? BigNumber.from(0)}
-											currentChain={currentChainId}
+											currentChain={currentChain}
 											refreshBalances={getDEVBalance}
 											dest="arbitrum"
 										/>
@@ -82,7 +82,7 @@ const NetworkContainer: React.FC<NetworkContainerParams> = ({ onChangeBalances }
 								<WrappableProvider>
 									<Unwrap
 										wDevBalance={wDevBalance ?? BigNumber.from(0)}
-										currentChain={currentChainId}
+										currentChain={currentChain}
 										refreshBalances={getDEVBalance}
 										from="arbitrum"
 									/>
@@ -92,7 +92,7 @@ const NetworkContainer: React.FC<NetworkContainerParams> = ({ onChangeBalances }
 						<Route path="/arbitrum/bridge">
 							<AllowanceProvider>
 								<ArbitrumContainer>
-									<DepositForm currentChain={currentChainId} wDevBalance={wDevBalance} dest="arbitrum" />
+									<DepositForm currentChain={currentChain} wDevBalance={wDevBalance} dest="arbitrum" />
 								</ArbitrumContainer>
 								<TransactionsTable />
 							</AllowanceProvider>
@@ -109,7 +109,7 @@ const NetworkContainer: React.FC<NetworkContainerParams> = ({ onChangeBalances }
 								<WrappableProvider>
 									<Wrap
 										devBalance={devBalance ?? BigNumber.from(0)}
-										currentChain={currentChainId}
+										currentChain={currentChain}
 										refreshBalances={getDEVBalance}
 										dest="polygon"
 									/>
@@ -122,7 +122,7 @@ const NetworkContainer: React.FC<NetworkContainerParams> = ({ onChangeBalances }
 							<WrappableProvider>
 								<Unwrap
 									wDevBalance={wDevBalance ?? BigNumber.from(0)}
-									currentChain={currentChainId}
+									currentChain={currentChain}
 									refreshBalances={getDEVBalance}
 									from="polygon"
 								/>
