@@ -9,16 +9,17 @@ import { useWeb3Provider } from '../../context/web3ProviderContext';
 import { getAvailableL1NetworkByChainId, isNumberInput, isValidChain, isValidL1Chain } from '../../utils/utils';
 import { AllowanceContext } from '../../context/allowanceContext';
 import ConfirmWrapModal from './ConfirmWrapModal';
-import { L1Network } from '../../types/types';
+import { Destination, L1Network } from '../../types/types';
 import { WrappableContext } from '../../context/wrappableContext';
 
 type WrapParams = {
 	devBalance: BigNumber;
 	currentChain: number | null;
 	refreshBalances(): void;
+	dest: Destination;
 };
 
-const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances }) => {
+const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances, dest }) => {
 	const [amount, setAmount] = useState<BigNumber>();
 	const [displayAmount, setDisplayAmount] = useState('');
 	const [formValid, setFormValid] = useState(false);
@@ -33,10 +34,10 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 	const getNetwork = useCallback(async (): Promise<void> => {
 		const currentProvider = web3Context?.web3Provider;
 		if (currentProvider) {
-			const network = getAvailableL1NetworkByChainId(await (await currentProvider.getNetwork()).chainId);
+			const network = getAvailableL1NetworkByChainId(await (await currentProvider.getNetwork()).chainId, dest);
 			setNetwork(network);
 		}
-	}, [web3Context?.web3Provider]);
+	}, [dest, web3Context?.web3Provider]);
 
 	const updateAmount = (val: string): void => {
 		// empty string
@@ -174,6 +175,7 @@ const Wrap: React.FC<WrapParams> = ({ devBalance, currentChain, refreshBalances 
 						amount={amount}
 						tokenAddress={network?.wrapperTokenAddress}
 						onError={e => console.log('a wrap error occurred: ', e)}
+						dest={dest}
 						txSuccess={onTxSuccess}></ConfirmWrapModal>
 				)}
 

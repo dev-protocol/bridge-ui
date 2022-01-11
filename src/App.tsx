@@ -1,60 +1,31 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
-import DepositForm from './components/convert/ConvertForm';
 import ConnectButton from './components/ConnectButton';
 import { BigNumber } from '@ethersproject/bignumber';
-import { Contract } from '@ethersproject/contracts';
-import erc20ABI from './constants/erc20.abi.json';
-import { getAvailableL1NetworkByChainId, getAvailableNetworkByChainId } from './utils/utils';
+import { getAvailableNetworkByChainId } from './utils/utils';
 import { useWeb3ProviderContext, WebProviderContext } from './context/web3ProviderContext';
-import { AllowanceProvider } from './context/allowanceContext';
-import { WrappableProvider } from './context/wrappableContext';
-import { BridgeProvider } from './context/bridgeContext';
-import TransactionsTable from './components/transactions-table/TransactionsTable';
-import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
-import Wrap from './components/wrap/Wrap';
-import MainContentContainer from './components/MainContentContainer';
-import Unwrap from './components/unwrap/Unwrap';
+import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
+import SwitchNetworks from './components/SwitchNetworks';
+import { UndefinedOr, whenDefined } from '@devprotocol/util-ts';
+import NetworkContainer from './components/network-container/NetworkContainer';
+import { AvailableNetwork } from './types/types';
+
+export type Balances = { dev: UndefinedOr<BigNumber>; wdev: UndefinedOr<BigNumber> };
 
 const App: React.FC = () => {
 	const web3ProviderContext = useWeb3ProviderContext();
 	const [currentChainId, setCurrentChainId] = useState<number | null>(null);
-	const [devBalance, setDevBalance] = useState<BigNumber>();
-	const [wDevBalance, setWDevBalance] = useState<BigNumber>();
+	const [currentConnectedNetwork, setConnectedNetwork] = useState<AvailableNetwork['name']>();
+	const [balances, setBalances] = useState<Balances>();
 
 	const updateChain = (chainId: number) => {
 		setCurrentChainId(+chainId);
 	};
 
-	const getDEVBalance = useCallback(async () => {
-		if (web3ProviderContext?.web3Provider) {
-			const provider = web3ProviderContext?.web3Provider;
-			const network = await provider.getNetwork();
-			const chainId = await network?.chainId;
-			const address = await provider.getSigner().getAddress();
-
-			const availableNetwork = getAvailableNetworkByChainId(chainId);
-
-			// is L1 or L2 compliant network
-			if (availableNetwork) {
-				const devContract = new Contract(availableNetwork.tokenAddress, erc20ABI, provider);
-				const devBalance: BigNumber = await devContract.balanceOf(address);
-				setDevBalance(devBalance);
-			}
-
-			// is L1 network
-			const l1AvailableNetwork = getAvailableL1NetworkByChainId(chainId);
-			if (l1AvailableNetwork) {
-				const arbWrapperContract = new Contract(l1AvailableNetwork.wrapperTokenAddress, erc20ABI, provider);
-				const wDevBalance = await arbWrapperContract.balanceOf(address);
-				setWDevBalance(wDevBalance);
-			}
-		}
-	}, [web3ProviderContext?.web3Provider]);
-
 	useEffect(() => {
-		getDEVBalance();
-	}, [web3ProviderContext, getDEVBalance]);
+		const network = whenDefined(currentChainId, id => getAvailableNetworkByChainId(id));
+		setConnectedNetwork(network?.name);
+	}, [currentChainId]);
 
 	return (
 		<WebProviderContext.Provider value={web3ProviderContext}>
@@ -62,63 +33,38 @@ const App: React.FC = () => {
 				<header className="flex justify-between p-4">
 					<h1 className="text-white text-lg font-bold">
 						<div className="w-12">
-							<img src={process.env.PUBLIC_URL + 'devmark.png'} />
+							<img src="/devmark.png" />
 						</div>
 						DEV Bridge
 					</h1>
-					<div className="flex flex-col items-end">
+					<div className="flex flex-col items-end gap-2">
 						<ConnectButton onChainChanged={updateChain} />
-						{devBalance && wDevBalance && (
+						{currentChainId ? (
+							currentConnectedNetwork ? (
+								<span className="rounded-full bg-green-600 text-white px-3">{currentConnectedNetwork}</span>
+							) : (
+								<span className="rounded-full bg-red-600 text-white px-3">Invalid network</span>
+							)
+						) : (
+							''
+						)}
+						{balances && balances.dev && balances.wdev && (
 							<div className="text-white text-right">
-								<span>DEV: {ethers.utils.formatUnits(devBalance?.toString(), 18).toString()}</span>
+								<span>DEV: {ethers.utils.formatUnits(balances.dev.toString() ?? 0, 18).toString()}</span>
 								<br />
-								<span>Wrapped DEV: {ethers.utils.formatUnits(wDevBalance?.toString(), 18).toString()}</span>
+								<span>Wrapped DEV: {ethers.utils.formatUnits(balances.wdev.toString() ?? 0, 18).toString()}</span>
 							</div>
 						)}
 					</div>
 				</header>
 				<main>
-					<BridgeProvider provider={web3ProviderContext?.web3Provider} refreshBalances={getDEVBalance}>
-						<Router>
-							<Switch>
-								<Redirect exact from="/" to="/wrap" />
-								<Route path="/wrap">
-									<MainContentContainer>
-										<AllowanceProvider>
-											<WrappableProvider>
-												<Wrap
-													devBalance={devBalance ?? BigNumber.from(0)}
-													currentChain={currentChainId}
-													refreshBalances={getDEVBalance}
-												/>
-											</WrappableProvider>
-										</AllowanceProvider>
-									</MainContentContainer>
-								</Route>
-								<Route path="/unwrap">
-									<MainContentContainer>
-										<WrappableProvider>
-											<Unwrap
-												wDevBalance={wDevBalance ?? BigNumber.from(0)}
-												currentChain={currentChainId}
-												refreshBalances={getDEVBalance}
-											/>
-										</WrappableProvider>
-									</MainContentContainer>
-								</Route>
-								<Route path="/bridge">
-									<AllowanceProvider>
-										<MainContentContainer>
-											<DepositForm currentChain={currentChainId} wDevBalance={wDevBalance} />
-										</MainContentContainer>
-										<TransactionsTable />
-									</AllowanceProvider>
-								</Route>
-							</Switch>
-						</Router>
-						{/* </div>
-						</div> */}
-					</BridgeProvider>
+					<Router>
+						<Redirect exact from="/" to="/arbitrum" />
+						<Route path="/:network">
+							<SwitchNetworks />
+							<NetworkContainer onChangeBalances={setBalances} currentChain={currentChainId} />
+						</Route>
+					</Router>
 				</main>
 			</div>
 		</WebProviderContext.Provider>

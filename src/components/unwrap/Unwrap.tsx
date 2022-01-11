@@ -7,16 +7,17 @@ import { UndefinedOr } from '@devprotocol/util-ts';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
 import { getAvailableL1NetworkByChainId, isNumberInput, isValidChain, isValidL1Chain } from '../../utils/utils';
 import ConfirmUnwrapModal from './ConfirmUnwrapModal';
-import { L1Network } from '../../types/types';
+import { Destination, L1Network } from '../../types/types';
 import { WrappableContext } from '../../context/wrappableContext';
 
 type UnwrapParams = {
 	wDevBalance: BigNumber;
 	currentChain: number | null;
 	refreshBalances(): void;
+	from: Destination;
 };
 
-const Unwrap: React.FC<UnwrapParams> = ({ wDevBalance, currentChain, refreshBalances }) => {
+const Unwrap: React.FC<UnwrapParams> = ({ wDevBalance, currentChain, refreshBalances, from }) => {
 	const [amount, setAmount] = useState<BigNumber>();
 	const [displayAmount, setDisplayAmount] = useState('');
 	const [formValid, setFormValid] = useState(false);
@@ -30,10 +31,10 @@ const Unwrap: React.FC<UnwrapParams> = ({ wDevBalance, currentChain, refreshBala
 	const getNetwork = useCallback(async (): Promise<void> => {
 		const currentProvider = web3Context?.web3Provider;
 		if (currentProvider) {
-			const network = getAvailableL1NetworkByChainId(await (await currentProvider.getNetwork()).chainId);
+			const network = getAvailableL1NetworkByChainId(await (await currentProvider.getNetwork()).chainId, from);
 			setNetwork(network);
 		}
-	}, [web3Context?.web3Provider]);
+	}, [from, web3Context?.web3Provider]);
 
 	const updateAmount = (val: string): void => {
 		// empty string

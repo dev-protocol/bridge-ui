@@ -6,6 +6,7 @@ import { faArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { AllowanceContext } from '../../context/allowanceContext';
 import { WrappableContext } from '../../context/wrappableContext';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
+import { Destination } from '../../types/types';
 
 type ConfirmWrapModalParams = {
 	amount: BigNumber;
@@ -13,6 +14,7 @@ type ConfirmWrapModalParams = {
 	tokenAddress: string;
 	onError(message: string): void;
 	txSuccess(): void;
+	dest: Destination;
 };
 
 const ConfirmWrapModal: React.FC<ConfirmWrapModalParams> = ({
@@ -20,11 +22,13 @@ const ConfirmWrapModal: React.FC<ConfirmWrapModalParams> = ({
 	tokenAddress,
 	setDisplayModal,
 	onError,
-	txSuccess
+	txSuccess,
+	dest
 }) => {
 	const { allowance } = useContext(AllowanceContext);
 	const { wrap, loading, setLoading } = useContext(WrappableContext);
 	const web3Context = useWeb3Provider();
+	const destNetwork = dest === 'arbitrum' ? 'Arbitrum' : dest === 'polygon' ? 'Polygon' : undefined;
 
 	const submitWrap = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -61,14 +65,14 @@ const ConfirmWrapModal: React.FC<ConfirmWrapModalParams> = ({
 								<div>
 									<FontAwesomeIcon icon={faArrowDown} />
 								</div>
-								<div>Arbitrum Compatible Wrapped DEV</div>
+								<div>{destNetwork} Compatible Wrapped DEV</div>
 							</div>
 
 							<div className="flex flex-col p-6 pt-4 border-t border-solid border-blueGray-200 rounded-b">
 								<div className="text-sm mb-4">
 									<span className="font-normal">
-										<b>Wrapping</b> to WDEV creates a Arbitrum compatible token that can be bridged to Arbitrum Layer 2.
-										You can unwrap to native DEV any time.
+										<b>Wrapping</b> to WDEV creates a {destNetwork} compatible token that can be bridged to{' '}
+										{destNetwork}. You can unwrap to native DEV any time.
 									</span>
 								</div>
 								<div className="flex items-center justify-end">

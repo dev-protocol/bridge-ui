@@ -2,7 +2,7 @@ import { UndefinedOr } from '@devprotocol/util-ts';
 import { networks } from 'arb-ts';
 import { ethers } from 'ethers';
 import React, { useContext, useState } from 'react';
-import { BridgeContext } from '../../context/bridgeContext';
+import { BridgeContext } from '../../context/arbitrumBridgeContext';
 import { AvailableNetwork } from '../../types/types';
 import DepositConfirmationModal from './ConvertConfirmationModal';
 

@@ -13,27 +13,28 @@ import {
 import { BigNumber } from '@ethersproject/bignumber';
 import { Contract, ethers, utils } from 'ethers';
 import { UndefinedOr, whenDefined } from '@devprotocol/util-ts';
-import { AvailableNetwork } from '../../types/types';
+import { AvailableNetwork, Destination } from '../../types/types';
 import { useWeb3Provider } from '../../context/web3ProviderContext';
 import { AllowanceContext } from '../../context/allowanceContext';
 import Approval from '../approval/Approval';
 import Convert from './Convert';
-import { RINKEBY } from '../../constants/constants';
+import { RINKEBY_DEST_ARBITRUM } from '../../constants/constants';
 import erc20ABI from '../../constants/erc20.abi.json';
 
 type DepositParams = {
 	currentChain: number | null;
 	wDevBalance: UndefinedOr<BigNumber>;
+	dest: Destination;
 };
 
-const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => {
+const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance, dest }) => {
 	const [amount, setAmount] = useState<BigNumber>();
 	const [displayAmount, setDisplayAmount] = useState('');
 	const [formValid, setFormValid] = useState(false);
 	const [isConnected, setIsConnected] = useState(false);
 	const [isValidNetwork, setIsValidNetwork] = useState(false);
 	const [network, setNetwork] = useState<UndefinedOr<AvailableNetwork>>();
-	const [selectedTargetChain, setSelectedTargetChain] = useState<AvailableNetwork>(RINKEBY);
+	const [selectedTargetChain, setSelectedTargetChain] = useState<AvailableNetwork>(RINKEBY_DEST_ARBITRUM);
 	const [targetChainOptions, setTargetChainOptions] = useState<AvailableNetwork[]>([]);
 	const [gatewayAddress, setGatewayAddress] = useState<UndefinedOr<string>>();
 	const web3Context = useWeb3Provider();
@@ -104,7 +105,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 			const currentProvider = web3Context?.web3Provider;
 			if (currentProvider && network) {
 				const sourceNetwork = getAvailableNetworkByChainId(network.chainId);
-				const sourceL1Network = getAvailableL1NetworkByChainId(network.chainId);
+				const sourceL1Network = getAvailableL1NetworkByChainId(network.chainId, dest);
 				const gatewayAddress = getGatewayAddressByChainId(network.chainId);
 				setGatewayAddress(gatewayAddress);
 				if (sourceNetwork) {
@@ -118,7 +119,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 			}
 		};
 		getAllowance();
-	}, [currentChain, network, web3Context, getNetwork, fetchAllowance]);
+	}, [currentChain, network, dest, web3Context, getNetwork, fetchAllowance]);
 
 	useEffect(() => {
 		const getProvider = async (): Promise<void> => {
@@ -145,7 +146,7 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance }) => 
 			const address = await provider.getSigner().getAddress();
 
 			const availableNetwork = getAvailableNetworkByChainId(network?.chainId);
-			const l1AvailableNetwork = getAvailableL1NetworkByChainId(network?.chainId);
+			const l1AvailableNetwork = getAvailableL1NetworkByChainId(network?.chainId, dest);
 
 			const contractAddress = l1AvailableNetwork
 				? l1AvailableNetwork.wrapperTokenAddress
