@@ -8,7 +8,9 @@ import {
 	getL1WrapperAddressByChainId,
 	getTargetNetworkOptions,
 	isNumberInput,
-	isValidChain
+	isValidChain,
+	isValidL1Chain,
+	isValidL2Chain
 } from '../../utils/utils';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Contract, ethers, utils } from 'ethers';
@@ -24,10 +26,11 @@ import erc20ABI from '../../constants/erc20.abi.json';
 type DepositParams = {
 	currentChain: number | null;
 	wDevBalance: UndefinedOr<BigNumber>;
+	devBalance: UndefinedOr<BigNumber>;
 	dest: Destination;
 };
 
-const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance, dest }) => {
+const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance, devBalance, dest }) => {
 	const [amount, setAmount] = useState<BigNumber>();
 	const [displayAmount, setDisplayAmount] = useState('');
 	const [formValid, setFormValid] = useState(false);
@@ -60,7 +63,24 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance, dest 
 			try {
 				const units = utils.parseUnits(val);
 				setAmount(units);
-				setFormValid(wDevBalance && wDevBalance?.gte(units) && +val > 0 ? true : false);
+
+				if (!network?.chainId) {
+					return;
+				}
+
+				/**
+				 * Exchange L1 WDEV -> Arbitrum L2
+				 */
+				if (isValidL1Chain(network.chainId)) {
+					setFormValid(wDevBalance && wDevBalance?.gte(units) && +val > 0 ? true : false);
+				}
+
+				/**
+				 * Exchange L2 DEV -> L1
+				 */
+				if (isValidL2Chain(network.chainId)) {
+					setFormValid(devBalance && devBalance?.gte(units) && +val > 0 ? true : false);
+				}
 			} catch (error) {
 				setFormValid(false);
 				console.log('err is: ', error);

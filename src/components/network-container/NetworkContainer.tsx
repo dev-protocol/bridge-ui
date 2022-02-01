@@ -92,7 +92,12 @@ const NetworkContainer: React.FC<NetworkContainerParams> = ({
 						<Route path="/arbitrum/bridge">
 							<AllowanceProvider>
 								<ArbitrumContainer>
-									<DepositForm currentChain={currentChain} wDevBalance={wDevBalance} dest="arbitrum" />
+									<DepositForm
+										currentChain={currentChain}
+										wDevBalance={wDevBalance}
+										devBalance={devBalance}
+										dest="arbitrum"
+									/>
 								</ArbitrumContainer>
 								<TransactionsTable />
 							</AllowanceProvider>

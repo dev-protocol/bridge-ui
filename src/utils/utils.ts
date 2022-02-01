@@ -32,6 +32,8 @@ export const isValidChain = (chainId: number): boolean => {
 
 export const isValidL1Chain = (chainId: number): boolean => chainId === 1 || chainId === 4;
 
+export const isValidL2Chain = (chainId: number): boolean => chainId === 42161 || chainId === 421611;
+
 /**
  * Pass in the source network to get the bridge contract gateway address
  * @param network source AvailableNetwork. For example, sending Mainnet -> Arbitrum Mainnet, pass in Mainnet Network
