@@ -20,7 +20,7 @@ import { useWeb3Provider } from '../../context/web3ProviderContext';
 import { AllowanceContext } from '../../context/allowanceContext';
 import Approval from '../approval/Approval';
 import Convert from './Convert';
-import { RINKEBY_DEST_ARBITRUM } from '../../constants/constants';
+import { L1_MAINNET_DEV_ADDRESS, RINKEBY_DEST_ARBITRUM } from '../../constants/constants';
 import erc20ABI from '../../constants/erc20.abi.json';
 
 type DepositParams = {
@@ -102,10 +102,24 @@ const DepositForm: React.FC<DepositParams> = ({ currentChain, wDevBalance, devBa
 
 			const validSourceNetwork = getAvailableNetworkByChainId(network.chainId);
 			if (validSourceNetwork) {
-				const options = getTargetNetworkOptions({
-					layer: validSourceNetwork.layer === 1 ? 2 : 1, // send to different layer
-					isTestnet: validSourceNetwork.isTestnet
-				});
+				const options =
+					validSourceNetwork.layer === 2
+						? // set manually since getAvailableNetworkByChainId returns 2 mainnets
+						  [
+								{
+									name: 'Mainnet',
+									chainId: 1,
+									layer: 1,
+									isTestnet: false,
+									tokenAddress: L1_MAINNET_DEV_ADDRESS
+								}
+						  ]
+						: // L2 options
+						  getTargetNetworkOptions({
+								layer: 2, // send to different layer
+								isTestnet: validSourceNetwork.isTestnet
+						  });
+
 				setTargetChainOptions(options);
 
 				// update target network select to first option
