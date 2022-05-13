@@ -1,4 +1,4 @@
-import { getL1Network, getL2Network, Erc20Bridger } from '@arbitrum/sdk';
+import { getL1Network, getL2Network, Erc20Bridger, L2ContractTransaction } from '@arbitrum/sdk';
 import { L1ContractCallTransaction } from '@arbitrum/sdk/dist/lib/message/L1Transaction';
 // import { Network } from '@arbitrum/sdk/dist/lib/dataEntities/networks';
 // import { L1ContractCallTransactionReceipt } from '@arbitrum/sdk/dist/lib/message/L1Transaction';
@@ -319,27 +319,35 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({
 		_processDeposit({ callTx: ethDepositTxResponse, amount, l2Provider });
 	};
 
+	const _processWithdraw = async () => {};
+
 	const withdraw = async (amount: BigNumber) => {
 		// if (!bridge) {
 		// 	console.error('Bridge not initilized');
 		// 	return;
 		// }
+		console.log('withdraw hit');
 
 		const ethProvider = provider;
 		if (!ethProvider) {
 			console.error('no provider found');
 			return;
 		}
+
+		console.log('000');
 		const l2Signer = ethProvider.getSigner(0);
 		// const l2Provider = new providers.JsonRpcProvider(partnerNetwork.rpcURL);
-
-		const l1Network = await getL1Network(l2Signer /** <-- chain id of target Arbitrum chain */);
-		console.log('l2 network is: ', l1Network);
 		const l2Network = await getL2Network(l2Signer);
+
+		const l1Network = await getL1Network(l2Network.partnerChainID /** <-- chain id of target Arbitrum chain */);
+		console.log('l2 network is: ', l1Network);
+
 		// l2Network.rpcURL
 		// const l2Provider = new providers.JsonRpcProvider(l2Network.rpcURL);
 
 		const erc20Bridger = new Erc20Bridger(l2Network);
+
+		console.log('111');
 
 		const l1WrapperAddress = await _getL1TokenAddress();
 		if (!l1WrapperAddress) {
@@ -347,11 +355,24 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({
 			return;
 		}
 
-		const withdrawTx = await erc20Bridger.withdraw({
-			erc20l1Address: l1WrapperAddress,
-			l2Signer,
-			amount
-		});
+		console.log('222');
+
+		let withdrawTx: L2ContractTransaction;
+
+		try {
+			console.log('l1WrapperAddress: ', l1WrapperAddress);
+			withdrawTx = await erc20Bridger.withdraw({
+				erc20l1Address: l1WrapperAddress,
+				l2Signer,
+				amount
+			});
+			console.log('withdrawTx: ', withdrawTx);
+		} catch (error) {
+			console.log('error is: ', error);
+			return;
+		}
+
+		console.log('333');
 
 		const l2TxReceipt = await withdrawTx.wait();
 		console.log('l2TxReceipt is: ', l2TxReceipt);
@@ -396,6 +417,7 @@ export const BridgeProvider: React.FC<IBridgeProviderParams> = ({
 		// 	}
 		// ]);
 		// setL2PendingTxHashes([...l2PendingTxs, l2TxReceipt]);
+		_processWithdraw();
 	};
 
 	// const withdraw = async (amount: BigNumber) => {
