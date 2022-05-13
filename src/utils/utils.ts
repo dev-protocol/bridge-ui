@@ -12,7 +12,7 @@ import {
 } from '../constants/constants';
 import { AvailableNetwork, L1Network, Destination } from '../types/types';
 import { getAddress } from '@ethersproject/address';
-import { Network } from 'arb-ts/dist/lib/networks';
+import { Network } from '@arbitrum/sdk/dist/lib/dataEntities/networks';
 
 export const getAvailableNetworkByChainId = (id: number): UndefinedOr<AvailableNetwork> =>
 	AvailableNetworks.find(network => network.chainId === id);

@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
+		"@arbitrum/sdk": "^1.1.4",
 		"@devprotocol/util-ts": "^2.2.1",
 		"@fortawesome/fontawesome-svg-core": "^1.2.36",
 		"@fortawesome/free-regular-svg-icons": "^5.15.4",
@@ -18,7 +19,6 @@
 		"@types/react-dom": "^17.0.0",
 		"@walletconnect/web3-provider": "^1.6.5",
 		"@web3-react/core": "^6.1.9",
-		"arb-ts": "^0.0.42",
 		"ethers": "^5.4.6",
 		"react": "^17.0.2",
 		"react-dom": "^17.0.2",
