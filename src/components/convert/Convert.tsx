@@ -1,9 +1,12 @@
+// import { getL1Network, getL2Network } from '@arbitrum/sdk';
+// import { isL1Network } from '@arbitrum/sdk/dist/lib/dataEntities/networks';
 import { UndefinedOr } from '@devprotocol/util-ts';
-import { networks } from 'arb-ts';
+// import { networks } from 'arb-ts';
 import { ethers } from 'ethers';
 import React, { useContext, useState } from 'react';
 import { BridgeContext } from '../../context/arbitrumBridgeContext';
 import { AvailableNetwork } from '../../types/types';
+import { isValidL1Chain } from '../../utils/utils';
 import DepositConfirmationModal from './ConvertConfirmationModal';
 
 interface ConvertParams {
@@ -25,11 +28,18 @@ const Convert: React.FC<ConvertParams> = ({ formValid, amount, network, selected
 
 	const submitTransaction = async (): Promise<void> => {
 		setLoading(true);
-		const currentNetwork = networks[network.chainId];
-		if (!currentNetwork) {
-			setLoading(false);
-			return;
-		}
+
+		// const currentNetwork = isValidL1Chain(network.chainId)
+		// 	? getL1Network(network.chainId)
+		// 	: getL2Network(network.chainId);
+
+		// getL1Network()
+
+		// const currentNetwork = networks[network.chainId];
+		// if (!currentNetwork) {
+		// 	setLoading(false);
+		// 	return;
+		// }
 
 		if (!amount || amount?.isZero()) {
 			setLoading(false);
@@ -37,16 +47,28 @@ const Convert: React.FC<ConvertParams> = ({ formValid, amount, network, selected
 		}
 
 		try {
-			if (currentNetwork.isArbitrum) {
-				// Withdraw
-				await bridgeContext.withdraw(amount);
-			} else {
+			if (isValidL1Chain(network.chainId)) {
 				// Deposit
 				await bridgeContext.deposit(amount);
+			} else {
+				// Withdraw
+				await bridgeContext.withdraw(amount);
 			}
 		} catch (error) {
 			setLoading(false);
 		}
+
+		// try {
+		// 	if (currentNetwork.isArbitrum) {
+		// 		// Withdraw
+		// 		await bridgeContext.withdraw(amount);
+		// 	} else {
+		// 		// Deposit
+		// 		await bridgeContext.deposit(amount);
+		// 	}
+		// } catch (error) {
+		// 	setLoading(false);
+		// }
 
 		setLoading(false);
 		setDisplayModal(false);
