@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
+		"@apollo/client": "^3.6.4",
 		"@arbitrum/sdk": "^1.1.4",
 		"@devprotocol/util-ts": "^2.2.1",
 		"@fortawesome/fontawesome-svg-core": "^1.2.36",
@@ -65,6 +66,7 @@
 		"eslint-plugin-prettier": "^4.0.0",
 		"eslint-plugin-react": "^7.25.1",
 		"eslint-plugin-react-hooks": "^4.2.0",
+		"graphql": "^16.5.0",
 		"postcss": "^7",
 		"prettier": "^2.3.2",
 		"tailwindcss": "npm:@tailwindcss/postcss7-compat"
