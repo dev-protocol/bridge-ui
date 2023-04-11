@@ -59,7 +59,7 @@ const App: React.FC = () => {
 				</header>
 				<main>
 					<Router>
-						<Redirect exact from="/" to="/arbitrum" />
+						<Redirect exact from="/" to="/polygon" />
 						<Route path="/:network">
 							<SwitchNetworks />
 							<NetworkContainer onChangeBalances={setBalances} currentChain={currentChainId} />
