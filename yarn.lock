@@ -3703,9 +3703,9 @@
     toformat "^2.0.0"
 
 "@uniswap/smart-order-router@^3.10.0":
-  version "3.10.2"
-  resolved "https://registry.yarnpkg.com/@uniswap/smart-order-router/-/smart-order-router-3.10.2.tgz#3884b9abf9f504d8836cc04c58aa009b8af05c63"
-  integrity sha512-Q1+sWP6TENvprggfR4eKdnqMCYAnej/mz29hG/cSssEto6wtBLBQ95In4350Jotz3LiGfOTROrInuzAXfebafA==
+  version "3.10.4"
+  resolved "https://registry.yarnpkg.com/@uniswap/smart-order-router/-/smart-order-router-3.10.4.tgz#0d50e01ebaaad5ba6e132f4f1517dab6e0ea228a"
+  integrity sha512-3Vi2f0be2qNkTOoHRpdcdLPh511KJsLBf+v8l9SOJV1QvhxatEd4qolC/KJRFJT0W7A4qYPvQY4VGfZAnLX0Bw==
   dependencies:
     "@uniswap/default-token-list" "^2.0.0"
     "@uniswap/permit2-sdk" "^1.2.0"
@@ -15393,7 +15393,7 @@ react-popper@^2.2.3:
     react-fast-compare "^3.0.1"
     warning "^4.0.2"
 
-react-redux@>=7.2.2:
+react-redux@>=7.2.2, react-redux@^8.0.5:
   version "8.0.5"
   resolved "https://registry.yarnpkg.com/react-redux/-/react-redux-8.0.5.tgz#e5fb8331993a019b8aaf2e167a93d10af469c7bd"
   integrity sha512-Q2f6fCKxPFpkXt1qNRZdEDLlScsDWyrgSj0mliK59qU6W5gvBiKkdMEG2lJzhd1rCctf0hb6EtePPLZ2e0m1uw==
@@ -17769,7 +17769,7 @@ tsconfig-paths@^3.11.0, tsconfig-paths@^3.9.0:
 
 tslib@1.14.1, tslib@^1.10.0, tslib@^1.8.1, tslib@^1.9.0:
   version "1.14.1"
-  resolved "https://registry.npmjs.org/tslib/-/tslib-1.14.1.tgz"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
 tslib@^2.0.0:
