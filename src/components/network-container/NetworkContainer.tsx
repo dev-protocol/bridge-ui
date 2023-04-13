@@ -17,6 +17,8 @@ import PolygonContainer from '../main-content-container/PolygonContainer';
 import { UndefinedOr, whenDefined } from '@devprotocol/util-ts';
 import { Destination } from '../../types/types';
 import Bridge from '../_network/polygon/Bridge';
+import MainnetContainer from '../main-content-container/MainnetContainer';
+import SwapComponent from '../swap/Swap';
 
 type NetworkContainerParams = {
 	currentChain: number | null;
@@ -140,6 +142,18 @@ const NetworkContainer: React.FC<NetworkContainerParams> = ({
 								<Bridge />
 							</WrappableProvider>
 						</PolygonContainer>
+					</Route>
+				</Switch>
+			</Route>
+			<Route path="/mainnet">
+				<Switch>
+					<Redirect exact from="/mainnet" to="/mainnet/swap" />
+					<Route path="/mainnet/swap">
+						<MainnetContainer>
+							<WrappableProvider>
+								<SwapComponent />
+							</WrappableProvider>
+						</MainnetContainer>
 					</Route>
 				</Switch>
 			</Route>
