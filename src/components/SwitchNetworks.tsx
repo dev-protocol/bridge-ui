@@ -12,12 +12,15 @@ const SwitchNetworks: React.FC = () => {
 	const { network } = useParams<{ network?: string }>();
 
 	return (
-		<nav className="max-w-sm bg-white mx-auto my-12 p-4 rounded z-0 grid grid-cols-2 gap-1 shadow-sm rounded-md">
+		<nav className="max-w-sm bg-white mx-auto my-12 p-4 rounded z-0 grid grid-cols-3 gap-1 shadow-sm rounded-md">
+			<NavLink to="/polygon" className={classNamesForNavItem(network === 'polygon')}>
+				Polygon
+			</NavLink>
 			<NavLink to="/arbitrum" className={classNamesForNavItem(network === 'arbitrum')}>
 				Arbitrum
 			</NavLink>
-			<NavLink to="/polygon" className={classNamesForNavItem(network === 'polygon')}>
-				Polygon
+			<NavLink to="/mainnet" className={classNamesForNavItem(network === 'mainnet')}>
+				Mainnet
 			</NavLink>
 		</nav>
 	);
